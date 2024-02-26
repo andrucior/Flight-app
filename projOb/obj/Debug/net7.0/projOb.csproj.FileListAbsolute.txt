@@ -1,0 +1,14 @@
+C:\Users\andrz\source\repos\projOb\projOb\bin\Debug\net7.0\projOb.exe
+C:\Users\andrz\source\repos\projOb\projOb\bin\Debug\net7.0\projOb.deps.json
+C:\Users\andrz\source\repos\projOb\projOb\bin\Debug\net7.0\projOb.runtimeconfig.json
+C:\Users\andrz\source\repos\projOb\projOb\bin\Debug\net7.0\projOb.dll
+C:\Users\andrz\source\repos\projOb\projOb\bin\Debug\net7.0\projOb.pdb
+C:\Users\andrz\source\repos\projOb\projOb\obj\Debug\net7.0\projOb.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\andrz\source\repos\projOb\projOb\obj\Debug\net7.0\projOb.AssemblyInfoInputs.cache
+C:\Users\andrz\source\repos\projOb\projOb\obj\Debug\net7.0\projOb.AssemblyInfo.cs
+C:\Users\andrz\source\repos\projOb\projOb\obj\Debug\net7.0\projOb.csproj.CoreCompileInputs.cache
+C:\Users\andrz\source\repos\projOb\projOb\obj\Debug\net7.0\projOb.dll
+C:\Users\andrz\source\repos\projOb\projOb\obj\Debug\net7.0\refint\projOb.dll
+C:\Users\andrz\source\repos\projOb\projOb\obj\Debug\net7.0\projOb.pdb
+C:\Users\andrz\source\repos\projOb\projOb\obj\Debug\net7.0\projOb.genruntimeconfig.cache
+C:\Users\andrz\source\repos\projOb\projOb\obj\Debug\net7.0\ref\projOb.dll
