@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace projOb
@@ -11,9 +12,14 @@ namespace projOb
     public class Cargo: MyObject
     {
         public Single Weight { get; set; }
-        public string Code { get; set; }
-        public string Description { get; set; }
-
+        public string? Code { get; set; }
+        public string? Description { get; set; }
+        public Cargo(): base()
+        {
+            Weight = 0;
+            Code = null;
+            Description = null;
+        }
         public Cargo(string[] values): base(values)
         {
             if (values.Length < 4) throw new InvalidNumberOfArgsException();
@@ -21,6 +27,10 @@ namespace projOb
             Weight = Convert.ToSingle(values[1], CultureInfo.InvariantCulture);
             Code = values[2];
             Description = values[3];
+        }
+        public override string JsonSerialize()
+        {
+            return JsonSerializer.Serialize(this);
         }
     }
 }

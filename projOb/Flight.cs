@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace projOb
@@ -12,15 +13,27 @@ namespace projOb
     {
         public UInt64 OriginID { get; set; }
         public UInt64 TargetID { get; set; }
-        public string TakeOff { get; set; }
-        public string Landing {  get; set; }
+        public string? TakeOff { get; set; }
+        public string? Landing {  get; set; }
         public Single Longitude { get; set; }
         public Single Latitude { get; set; }
         public Single AMSL { get; set; }
         public UInt64 PlaneID {  get; set; }  
-        public UInt64[] CrewID { get; set; }
-        public UInt64[] LoadID { get; set; }
-
+        public UInt64[]? CrewID { get; set; }
+        public UInt64[]? LoadID { get; set; }
+        public Flight(): base()
+        {
+            OriginID = 0;
+            TargetID = 0;
+            TakeOff = null;
+            Landing = null;
+            Longitude = 0;
+            Latitude = 0;
+            AMSL = 0;
+            PlaneID = 0;
+            CrewID = null;
+            LoadID = null;
+        }
         public Flight(string[] values): base(values)
         {
             if (values.Length < 11) throw new InvalidNumberOfArgsException();
@@ -45,6 +58,10 @@ namespace projOb
                 .Split(';');   
             LoadID = new UInt64[tmp2.Length];
             LoadID = tmp2.Select(UInt64.Parse).ToArray();
+        }
+        public override string JsonSerialize()
+        {
+            return JsonSerializer.Serialize(this);
         }
     }
 }
