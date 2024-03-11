@@ -29,6 +29,13 @@ namespace projOb
             ISO = values[2];
             Model = values[3];
         }
+        public Plane(byte[] values) : base(values)
+        {
+            Serial = Encoding.ASCII.GetString(values, 15, 6);
+            ISO = Encoding.ASCII.GetString(values, 25, 3);
+            UInt16 ML = BitConverter.ToUInt16(values, 28);
+            Model = Encoding.ASCII.GetString(values, 30, ML);
+        }
         public override string JsonSerialize()
         {
             return JsonSerializer.Serialize(this);
@@ -56,6 +63,12 @@ namespace projOb
             BusinessClassSize = Convert.ToUInt16(values[5]);
             EconomyClassSize = Convert.ToUInt16(values[6]);
         }
+        public PassengerPlane(byte[] values): base(values)
+        {
+            FirstClassSize = BitConverter.ToUInt16(values, 30 + Model.Length);
+            BusinessClassSize = BitConverter.ToUInt16(values, 32 + Model.Length);
+            EconomyClassSize = BitConverter.ToUInt16(values, 34 + Model.Length);
+        }
         public override string JsonSerialize()
         {
             return JsonSerializer.Serialize(this);
@@ -74,6 +87,10 @@ namespace projOb
             if (values.Length < 5) throw new InvalidNumberOfArgsException();
 
             MaxLoad = Convert.ToSingle(values[4]);
+        }
+        public CargoPlane(byte[] values): base(values)
+        {
+            MaxLoad = BitConverter.ToSingle(values, 30 + Model.Length);
         }
         public override string JsonSerialize()
         {

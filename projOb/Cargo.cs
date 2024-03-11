@@ -28,6 +28,13 @@ namespace projOb
             Code = values[2];
             Description = values[3];
         }
+        public Cargo(byte[] values) : base(values)
+        {
+            Weight = BitConverter.ToSingle(values, 15);
+            Code = Encoding.ASCII.GetString(values, 19, 6);
+            UInt16 DL = BitConverter.ToUInt16(values, 25);
+            Description = Encoding.ASCII.GetString(values, 27, DL);
+        }
         public override string JsonSerialize()
         {
             return JsonSerializer.Serialize(this);

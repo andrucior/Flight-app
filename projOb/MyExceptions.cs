@@ -11,6 +11,5 @@ namespace projOb
         public InvalidNumberOfArgsException() : base() { }
         public InvalidNumberOfArgsException(string message) : base(message) { }
         public InvalidNumberOfArgsException(string message, Exception exception): base(message, exception) { }
-
     }
 }

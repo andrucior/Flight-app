@@ -14,7 +14,7 @@ namespace projOb
         public UInt64 OriginID { get; set; }
         public UInt64 TargetID { get; set; }
         public string? TakeOff { get; set; }
-        public string? Landing {  get; set; }
+        public string? Landing { get; set; }
         public Single Longitude { get; set; }
         public Single Latitude { get; set; }
         public Single AMSL { get; set; }
@@ -58,6 +58,26 @@ namespace projOb
                 .Split(';');   
             LoadID = new UInt64[tmp2.Length];
             LoadID = tmp2.Select(UInt64.Parse).ToArray();
+        }
+        public Flight(byte[] values) : base(values)
+        {
+            OriginID = BitConverter.ToUInt64(values, 15);
+            TargetID = BitConverter.ToUInt64(values, 23);
+            UInt64 TO = BitConverter.ToUInt64(values, 31);
+            DateTimeOffset date = DateTimeOffset.FromUnixTimeMilliseconds((long)TO);
+            TakeOff = Convert.ToString(date);
+            UInt64 LT = BitConverter.ToUInt64(values, 39);
+            DateTimeOffset lt = DateTimeOffset.FromUnixTimeMilliseconds((long)LT);
+            Landing = Convert.ToString(lt);
+            PlaneID = BitConverter.ToUInt64(values, 47);
+            UInt16 CC = BitConverter.ToUInt16(values, 55);
+            CrewID = new UInt64[CC];
+            for (int i = 0; i < CC; i++)
+                CrewID[i] = BitConverter.ToUInt64(values, (57 + 8 * i));
+            UInt16 PCC = BitConverter.ToUInt16(values, 57 + 8 * CC);
+            LoadID = new UInt64[PCC];
+            for (int i = 0; (i < PCC); i++)
+                LoadID[i] = BitConverter.ToUInt64(values, 59 + 8 * CC + 8 * i);
         }
         public override string JsonSerialize()
         {

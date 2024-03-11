@@ -37,6 +37,16 @@ namespace projOb
             AMSL = Convert.ToSingle(values[5], CultureInfo.InvariantCulture);
             ISO = values[6];
         }
+        public Airport(byte[] values) : base(values)
+        {
+            UInt16 NL = BitConverter.ToUInt16(values, 15);
+            Name = Encoding.ASCII.GetString(values, 17, NL);
+            Code = Encoding.ASCII.GetString(values, 17 + NL, 3);
+            Longitude = BitConverter.ToSingle(values, 20 + NL);
+            Latitude = BitConverter.ToSingle(values, 24 + NL);
+            AMSL = BitConverter.ToSingle(values, 28 + NL);
+            ISO = Encoding.ASCII.GetString(values, 32 + NL, 3);
+        }
         public override string JsonSerialize()
         {
             return JsonSerializer.Serialize(this);
