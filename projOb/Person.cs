@@ -93,7 +93,7 @@ namespace projOb
         }
         public Passenger(byte[] values): base(values)
         {
-            Class = Encoding.ASCII.GetString(values, 33 + Name.Length + Email.Length, sizeof(char));
+            Class = Encoding.ASCII.GetString(values, 33 + Name.Length + Email.Length, 1);
             Miles = BitConverter.ToUInt64(values, 34 + Name.Length + Email.Length);
         }
         public override string JsonSerialize()

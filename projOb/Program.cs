@@ -69,7 +69,7 @@ class Project
     static void CreateThreads(string filePath)
     {
         string? message;
-        NetworkSourceSimulator nss = new NetworkSourceSimulator(filePath, 0, 1);
+        NetworkSourceSimulator nss = new NetworkSourceSimulator(filePath, 0, 100);
         Thread server = new Thread(nss.Run);
         Thread console = new Thread(() =>
         {
@@ -103,7 +103,7 @@ class Project
         foreach (var obj in Project.objects)
         {
             string jSon = obj.JsonSerialize();
-            streamWriter.Write(jSon);
+            streamWriter.WriteLine(jSon);
         }
     }
 }
