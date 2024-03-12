@@ -83,7 +83,7 @@ class Project
     static void CreateThreads(string filePath)
     {
         string? message;
-        NetworkSourceSimulator nss = new NetworkSourceSimulator(filePath, 10, 200);
+        NetworkSourceSimulator nss = new NetworkSourceSimulator(filePath, 0, 1);
         Thread server = new Thread(new ThreadStart(nss.Run));
         Thread console = new Thread(() =>
         {
@@ -92,7 +92,8 @@ class Project
                 message = Console.ReadLine();
                 if (message == "exit")
                 {
-                    server.IsBackground = true;
+                    if (server.IsAlive)
+                        server.IsBackground = true;
                     Project.running = false;
                 }
                 if (message == "print")
