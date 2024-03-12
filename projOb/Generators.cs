@@ -60,4 +60,8 @@ namespace projOb
         public override PassengerPlane CreateByte(byte[] values) { return new PassengerPlane(values); }
 
     }
+    public class DataReaderGenerator
+    {
+        public DataReader Create(NetworkSourceSimulator.NetworkSourceSimulator nss, List<MyObject> myObjects) { return new DataReader(nss, ref myObjects); }
+    }
 }

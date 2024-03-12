@@ -6,12 +6,10 @@ using System.Runtime.CompilerServices;
 using System.Text;
 namespace NetworkSourceSimulator;
 
-// todo:
-// Referencje do obiektu 
 class Project
 {
-    volatile static bool running = true;
-    static List<MyObject> objects = new List<MyObject>();
+    volatile private static bool running = true;
+    static private List<MyObject> objects = new List<MyObject>();
     static void Main(string[] args)
     {
         string filePath = Path.Combine(Directory.GetCurrentDirectory(), "test.ftr");
@@ -30,18 +28,6 @@ class Project
         generators.Add("PP", new PassengerPlaneGenerator());
         generators.Add("AI", new AirportGenerator());
         generators.Add("FL", new FlightGenerator());
-        return generators;
-    }
-    static Dictionary<string, Generator> CreateDictionaryNSS()
-    {
-        Dictionary<string, Generator> generators = new Dictionary<string, Generator>();
-        generators.Add("NCR", new CrewGenerator());
-        generators.Add("NPA", new PassengerGenerator());
-        generators.Add("NCA", new CargoGenerator());
-        generators.Add("NCP", new CargoPlaneGenerator());
-        generators.Add("NPP", new PassengerPlaneGenerator());
-        generators.Add("NAI", new AirportGenerator());
-        generators.Add("NFL", new FlightGenerator());
         return generators;
     }
 
@@ -84,7 +70,7 @@ class Project
     {
         string? message;
         NetworkSourceSimulator nss = new NetworkSourceSimulator(filePath, 0, 1);
-        Thread server = new Thread(new ThreadStart(nss.Run));
+        Thread server = new Thread(nss.Run);
         Thread console = new Thread(() =>
         {
             while (Project.running)
@@ -98,31 +84,26 @@ class Project
                 }
                 if (message == "print")
                 {
-                    DateTime now = DateTime.Now;
-                    string jsonPath = Path.Combine(Directory.GetCurrentDirectory(), $"snapshot_{now.Hour}_{now.Minute}_{now.Second}.json");
-                    using StreamWriter streamWriter = new StreamWriter(jsonPath);
-                    foreach (var obj in Project.objects)
-                    {
-                        string jSon = obj.JsonSerialize();
-                        streamWriter.Write(jSon);
-                    }
+                    SnapShot();
                 }
             }
             return;
         });
-        nss.OnNewDataReady += ReadData;
+        DataReader dr = new DataReaderGenerator().Create(nss, objects);
+        nss.OnNewDataReady += dr.ReadData;
         console.Start();
         server.Start();    
     }
-    static void ReadData(object sender, NewDataReadyArgs args) 
-    {
-        Dictionary<string, Generator> generators = CreateDictionaryNSS();
-        NetworkSourceSimulator nss =  (NetworkSourceSimulator) sender;
-        Message msg = nss.GetMessageAt(args.MessageIndex);
-        string result = Encoding.ASCII.GetString(msg.MessageBytes[0..3]);
-        generators.TryGetValue(result, out var generator);
-        var obj = generator.CreateByte(msg.MessageBytes);
-        Project.objects.Add(obj);
-    }
     
+    static void SnapShot()
+    {
+        DateTime now = DateTime.Now;
+        string jsonPath = Path.Combine(Directory.GetCurrentDirectory(), $"snapshot_{now.Hour}_{now.Minute}_{now.Second}.json");
+        using StreamWriter streamWriter = new StreamWriter(jsonPath);
+        foreach (var obj in Project.objects)
+        {
+            string jSon = obj.JsonSerialize();
+            streamWriter.Write(jSon);
+        }
+    }
 }
