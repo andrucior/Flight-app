@@ -31,7 +31,8 @@ namespace projOb
         }
         public Plane(byte[] values) : base(values)
         {
-            Serial = Encoding.ASCII.GetString(values, 15, 6);
+            Serial = Encoding.ASCII.GetString(values, 15, 10);
+            Serial = Serial.TrimEnd('\0');
             ISO = Encoding.ASCII.GetString(values, 25, 3);
             UInt16 ML = BitConverter.ToUInt16(values, 28);
             Model = Encoding.ASCII.GetString(values, 30, ML);

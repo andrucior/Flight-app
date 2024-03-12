@@ -83,12 +83,10 @@ class Project
     static void CreateThreads(string filePath)
     {
         string? message;
-        string jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "snapshot_HH_MM_SS.json");
-        NetworkSourceSimulator nss = new NetworkSourceSimulator(filePath, 10, 20);
+        NetworkSourceSimulator nss = new NetworkSourceSimulator(filePath, 10, 200);
         Thread server = new Thread(new ThreadStart(nss.Run));
         Thread console = new Thread(() =>
         {
-            using StreamWriter streamWriter = new StreamWriter(jsonPath);
             while (Project.running)
             {
                 message = Console.ReadLine();
@@ -99,24 +97,27 @@ class Project
                 }
                 if (message == "print")
                 {
-                    foreach (var obj in Project.objects) 
-                    { 
+                    DateTime now = DateTime.Now;
+                    string jsonPath = Path.Combine(Directory.GetCurrentDirectory(), $"snapshot_{now.Hour}_{now.Minute}_{now.Second}.json");
+                    using StreamWriter streamWriter = new StreamWriter(jsonPath);
+                    foreach (var obj in Project.objects)
+                    {
                         string jSon = obj.JsonSerialize();
                         streamWriter.Write(jSon);
                     }
                 }
-            } 
+            }
+            return;
         });
         nss.OnNewDataReady += ReadData;
-        server.Start();
         console.Start();
+        server.Start();    
     }
     static void ReadData(object sender, NewDataReadyArgs args) 
     {
         Dictionary<string, Generator> generators = CreateDictionaryNSS();
         NetworkSourceSimulator nss =  (NetworkSourceSimulator) sender;
         Message msg = nss.GetMessageAt(args.MessageIndex);
-        // Console.WriteLine(args.MessageIndex);
         string result = Encoding.ASCII.GetString(msg.MessageBytes[0..3]);
         generators.TryGetValue(result, out var generator);
         var obj = generator.CreateByte(msg.MessageBytes);
