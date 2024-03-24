@@ -62,6 +62,6 @@ namespace projOb
     }
     public class DataReaderGenerator
     {
-        public DataReader Create(NetworkSourceSimulator.NetworkSourceSimulator nss, List<MyObject> myObjects) { return new DataReader(nss, ref myObjects); }
+        public DataReader Create(NetworkSourceSimulator.NetworkSourceSimulator nss, Dictionary<string, (Generator, List<MyObject>)> generators) { return new DataReader(nss, ref generators); }
     }
 }

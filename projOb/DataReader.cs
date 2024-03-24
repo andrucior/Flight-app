@@ -11,21 +11,12 @@ namespace projOb
     public class DataReader
     {
         private NetworkSourceSimulator.NetworkSourceSimulator Nss { get; set; }
-        private List<MyObject> Objects { get; set; }
-        private Dictionary<string, Generator> Generators;
-
-        public DataReader(NetworkSourceSimulator.NetworkSourceSimulator Nss, ref List<MyObject> objects)
+        private Dictionary<string, (Generator, List<MyObject>)> Generators;
+        
+        public DataReader(NetworkSourceSimulator.NetworkSourceSimulator Nss, ref Dictionary<string, (Generator, List<MyObject>)> Generators)
         {
             this.Nss = Nss;
-            this.Objects = objects;
-            Generators = new Dictionary<string, Generator>();
-            Generators.Add("NCR", new CrewGenerator());
-            Generators.Add("NPA", new PassengerGenerator());
-            Generators.Add("NCA", new CargoGenerator());
-            Generators.Add("NCP", new CargoPlaneGenerator());
-            Generators.Add("NPP", new PassengerPlaneGenerator());
-            Generators.Add("NAI", new AirportGenerator());
-            Generators.Add("NFL", new FlightGenerator());
+            this.Generators = Generators;
         }
 
         public void ReadData(object sender, NewDataReadyArgs args)
@@ -33,8 +24,9 @@ namespace projOb
             Message msg = Nss.GetMessageAt(args.MessageIndex);
             string result = Encoding.ASCII.GetString(msg.MessageBytes[0..3]);
             Generators.TryGetValue(result, out var generator);
-            var obj = generator.CreateByte(msg.MessageBytes);
-            Objects.Add(obj);
+            var obj = generator.Item1.CreateByte(msg.MessageBytes);
+            lock (generator.Item2)
+                generator.Item2.Add(obj);
         }
     }
 }
