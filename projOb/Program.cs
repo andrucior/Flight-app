@@ -6,6 +6,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Mapsui.Projections;
 using Avalonia.Rendering;
+using System.Drawing;
+using System.Globalization;
 // namespace NetworkSourceSimulator;
 namespace FlightTrackerGUI;
 
@@ -20,19 +22,19 @@ class Project
         // string jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "backup.json");
         // Serialize(generators, jsonPath);
         
-        // Dictionary<string, (Generator, List<MyObject>)> generators2 = CreateDictionary2ndStage();
-        // CreateThreads(filePath, generators);
+        // Dictionary<string, (Generator, List<MyObject>)> generators = CreateDictionary2ndStage();
+        // CreateThreads(filePath, generators2);
         Thread.Sleep(1000);
-        List<Flight> flights = GetFlightList(generators);
-        List<Airport> airports = GetAirportList(generators);
+        List<Flight> flights = GetFlightList(generators, "FL");
+        List<Airport> airports = GetAirportList(generators, "AI");
         NewThreads(flights, airports);
 
     }
-    static List<Flight> GetFlightList(Dictionary<string, (Generator generator, List<MyObject> list)> generators)
+    static List<Flight> GetFlightList(Dictionary<string, (Generator generator, List<MyObject> list)> generators, string key)
     {
         (Generator, List <MyObject>) ans;
         
-        generators.TryGetValue("FL", out ans);
+        generators.TryGetValue(key, out ans);
         List<Flight> flights = new List<Flight>();
         foreach (Flight flight in ans.Item2) 
         { 
@@ -40,11 +42,11 @@ class Project
         }
         return flights;
     }
-    static List<Airport> GetAirportList(Dictionary<string, (Generator generator, List<MyObject> list)> generators)
+    static List<Airport> GetAirportList(Dictionary<string, (Generator generator, List<MyObject> list)> generators, string key)
     {
         (Generator, List<MyObject>) ans;
 
-        generators.TryGetValue("AI", out ans);
+        generators.TryGetValue(key, out ans);
         List<Airport> airports = new List<Airport>();
         foreach (Airport airport in ans.Item2)
         {
@@ -175,69 +177,52 @@ class Project
     {
         DateTime start = DateTime.Now;
         FlightsGUIData flightsGUIData = new FlightsGUIData();
-        List<FlightGUI> flightsGUI = new List<FlightGUI>();
-        
-        double prevRotation1 = 0, prevRotation2 = 0;
+        List<FlightGUI> flightsList = new List<FlightGUI>();
         
         DateTime startDate = new DateTime(start.Year, start.Month, start.Day, 0, 0, 0);
         DateTime endDate = startDate.AddDays(1);
+        
         Thread runner = new Thread(() =>
         {
             FlightTrackerGUI.Runner.Run();
         });
+        
         Thread updateFlights = new Thread(() =>
         {
             while (startDate <= endDate)
             {
-                DateTime now = DateTime.Now;
-                TimeSpan diff = now - start;
 
-                // Console.WriteLine(diff.TotalSeconds);
-                /* FlightGUI test = new FlightGUI
+                //TimeSpan diff = star - start;
+
+                lock (flightsList)
                 {
-                    ID = 0,
-                    WorldPosition = new WorldPosition(60 + diff.TotalSeconds, 70 + diff.TotalSeconds),
-                    MapCoordRotation = Math.PI / 4
-                };
-                FlightGUI test2 = new FlightGUI
-                {
-                    ID = 1,
-                    WorldPosition = new WorldPosition(Math.PI / 6 - diff.TotalSeconds, Math.PI / 6 - diff.Seconds),
-                    MapCoordRotation = - 3 * Math.PI / 4
-                };*/
-                flightsGUI.Clear();
-                flightsGUIData.UpdateFlights(flightsGUI);
+                    flightsList.Clear();
+                    flightsGUIData.UpdateFlights(flightsList);
+                }
 
                 foreach (var flight in flights) 
                 {
-                    FlightAdapter flGUI = new FlightAdapter(flight, airports);
+                    string format = "dd:MM:yyyy HH:mm:ss";
+                    CultureInfo provider = CultureInfo.InvariantCulture;
+
                     DateTime takeOff = Convert.ToDateTime(flight.TakeOff);
                     DateTime landing = Convert.ToDateTime(flight.Landing);
-                    double v = flGUI.CalculateVelocity();
-                    (double x, double y) = SphericalMercator.ToLonLat(v * diff.TotalSeconds, v * diff.TotalSeconds);
-                    
 
-                    if (takeOff > startDate && landing < startDate)
+                    if (DateTime.Compare(takeOff, landing) >= 0) continue;
+
+                    if (DateTime.Compare(takeOff, startDate) <= 0 && DateTime.Compare(landing, startDate) >= 0)
                     {
-                        Airport? origin = airports.Find((Airport airp) => (airp.ID == flight.OriginID));
-                        Airport? target = airports.Find((Airport airp) => (airp.ID == flight.TargetID));
-                        double alpha = FlightAdapter.CalculateRotation(origin, target);
-
-                        FlightGUI flightGUI = new FlightGUI
-                        {
-                            ID = flight.ID,
-                            MapCoordRotation = FlightAdapter.CalculateRotation(origin, target),
-                            WorldPosition = new WorldPosition(flight.Latitude - Math.Cos(alpha) * x * 100, flight.Longitude - Math.Sin(alpha) * y * 100),
-                        };
-                        flightsGUI.Add(flightGUI);
+                        FlightAdapter flightGUI = new FlightAdapter(flight, airports, startDate);
+                        lock (flightsList)
+                            flightsList.Add(flightGUI);
                     }
                 }
-                // FlightTrackerGUI.Runner.Run();
                 
                 lock (flightsGUIData)
-                    flightsGUIData.UpdateFlights(flightsGUI);
+                    flightsGUIData.UpdateFlights(flightsList);
+                startDate = startDate.AddMinutes(30);
                 Thread.Sleep(1000);
-                startDate = startDate.AddHours(1);
+                
             }
             
             return;
@@ -246,8 +231,8 @@ class Project
         Thread GUIdata = new Thread(() =>
         {
             while (startDate <= endDate)
-            {
-                 lock (flightsGUIData)
+            { 
+                lock (flightsGUIData)
                     FlightTrackerGUI.Runner.UpdateGUI(flightsGUIData);
                 Thread.Sleep(1000);
             }

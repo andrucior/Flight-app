@@ -65,10 +65,10 @@ namespace projOb
             TargetID = BitConverter.ToUInt64(values, 23);
             UInt64 TO = BitConverter.ToUInt64(values, 31);
             DateTimeOffset date = DateTimeOffset.FromUnixTimeMilliseconds((long)TO);
-            TakeOff = date.ToString("dd:MM:yyyy HH:mm:ss");
+            TakeOff = date.ToString("dd.MM.yyyy HH:mm:ss");
             UInt64 LT = BitConverter.ToUInt64(values, 39);
             DateTimeOffset lt = DateTimeOffset.FromUnixTimeMilliseconds((long)LT);
-            Landing = lt.ToString("dd:MM:yyyy HH:mm:ss");
+            Landing = lt.ToString("dd.MM.yyyy HH:mm:ss");
             PlaneID = BitConverter.ToUInt64(values, 47);
             UInt16 CC = BitConverter.ToUInt16(values, 55); 
             CrewID = new UInt64[CC];

@@ -13,42 +13,39 @@ namespace projOb
     {
         private Flight Fl;
         private List<Airport> Airports;
-        public FlightAdapter(Flight fl, List<Airport> airports) 
+        
+        public FlightAdapter(Flight fl, List<Airport> airports, DateTime startDate) 
         {
             if (fl == null) throw new Exception("Flight cannot be null");
-            Fl = fl;
+
             Airports = airports;
+            ID = fl.ID; 
             
+            Airport? origin = Airports.Find((Airport airp) => (airp.ID == fl.OriginID));
+            Airport? target = Airports.Find((Airport airp) => (airp.ID == fl.TargetID));
+            if (origin == null || target == null) throw new Exception("Aiport not found"); 
+            
+            Fl = fl;
+            MapCoordRotation = CalculateRotation(origin, target);
+            
+            DateTime timeOfTakeOff = Convert.ToDateTime(fl.TakeOff);
+            TimeSpan diff = startDate - timeOfTakeOff;
+            TimeSpan travelTime = Convert.ToDateTime(fl.Landing) - Convert.ToDateTime(fl.TakeOff);
+            
+            double ratio = diff / travelTime;
+
+            double t = (double)diff.Hours + (double)diff.Minutes / 60;
+            
+            double x = origin.Latitude + ratio * (target.Latitude - origin.Latitude);
+            double y = origin.Longitude + ratio * (target.Longitude - origin.Latitude);
+            WorldPosition = new WorldPosition(x, y);
         }
-        public new WorldPosition WorldPosition
-        {
-            get { return WorldPosition; }
-            init 
-            {
-                // draft
-                new WorldPosition(Fl.Latitude, Fl.Longitude);
-            } 
-        }
-        public new double MapCoordRotation
-        {
-            get { return 0; }
-            init 
-            {
-                Airport? origin = Airports.Find((Airport airp) => (airp.ID == Fl.OriginID));
-                Airport? target = Airports.Find((Airport airp) => (airp.ID == Fl.TargetID));
-                if (origin == null || target == null) throw new Exception("Airport not found");
-                
-                value = CalculateRotation(origin, target);
-            }
-        }
-        public double CalculateVelocity()
+        public double CalculateVelocity(Airport start, Airport dest)
         {
             DateTime now = DateTime.Now;
             DateTime landing = Convert.ToDateTime(Fl.Landing);
             DateTime takeOff = Convert.ToDateTime(Fl.TakeOff);
-            Airport start, dest;
-            start = Airports.Find((Airport airp) => Fl.OriginID == airp.ID);
-            dest = Airports.Find((Airport airp) => Fl.TargetID == airp.ID);
+            
 
             TimeSpan timeSpan = landing - takeOff;
 
@@ -64,7 +61,7 @@ namespace projOb
             double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
 
             double s = R * c / 1000; // in km
-            double t = timeSpan.Hours;
+            double t = timeSpan.Hours + timeSpan.Minutes / 60;
             double v = s / t;
             return v;
         }
