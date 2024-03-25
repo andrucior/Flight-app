@@ -24,14 +24,15 @@ namespace projOb
             Phone = null;
             Email = null;
         }
+        [JsonConstructor]
         public Person(string[] values): base(values)
         {
             if (values.Length < 5) throw new InvalidNumberOfArgsException();
 
-            Name = values[1];
-            Age = Convert.ToUInt64(values[2]);
-            Phone = values[3];
-            Email = values[4];
+            Name = values[2];
+            Age = Convert.ToUInt64(values[3]);
+            Phone = values[4];
+            Email = values[5];
         }
         public Person(byte[] values): base(values)
         {
@@ -57,12 +58,13 @@ namespace projOb
             Practice = 0;
             Role = null;
         }
+        [JsonConstructor]
         public Crew(string[] values) : base(values)
         {
             if (values.Length < 7) throw new InvalidNumberOfArgsException();
 
-            Practice = Convert.ToUInt16(values[5]);
-            Role = values[6];
+            Practice = Convert.ToUInt16(values[6]);
+            Role = values[7];
         }
         public Crew(byte[] values) : base(values)
         {
@@ -84,12 +86,13 @@ namespace projOb
             Class = null;
             Miles = 0;
         }
+        [JsonConstructor]
         public Passenger(string[] values) : base(values)
         {
             if (values.Length < 7) throw new InvalidNumberOfArgsException();
 
-            Class = values[5];
-            Miles = Convert.ToUInt64(values[6]);
+            Class = values[6];
+            Miles = Convert.ToUInt64(values[7]);
         }
         public Passenger(byte[] values): base(values)
         {

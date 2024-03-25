@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace projOb
@@ -26,15 +27,16 @@ namespace projOb
             AMSL = 0;
             ISO = null;
         }
+        [JsonConstructor]
         public Airport(string[] values): base(values)
         {
             if (values.Length < 7) throw new InvalidNumberOfArgsException();
 
-            Name = Convert.ToString(values[1]);
-            Code = Convert.ToString(values[2]);
-            Longitude = Convert.ToSingle(values[3], CultureInfo.InvariantCulture);
-            Latitude = Convert.ToSingle(values[4], CultureInfo.InvariantCulture);
-            AMSL = Convert.ToSingle(values[5], CultureInfo.InvariantCulture);
+            Name = Convert.ToString(values[2]);
+            Code = Convert.ToString(values[3]);
+            Longitude = Convert.ToSingle(values[4], CultureInfo.InvariantCulture);
+            Latitude = Convert.ToSingle(values[5], CultureInfo.InvariantCulture);
+            AMSL = Convert.ToSingle(values[6], CultureInfo.InvariantCulture);
             ISO = values[6];
         }
         public Airport(byte[] values) : base(values)

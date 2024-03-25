@@ -8,29 +8,43 @@ using Mapsui.Projections;
 using Avalonia.Rendering;
 using System.Drawing;
 using System.Globalization;
+using System.Net.WebSockets;
+using Avalonia.Controls.Shapes;
 // namespace NetworkSourceSimulator;
 namespace FlightTrackerGUI;
 
 class Project
 {
     volatile private static bool running = true;
+    private static DateTime start = DateTime.Now;
+    private static FlightsGUIData flightsGUIData = new FlightsGUIData();
+    private static List<FlightGUI> flightsList = new List<FlightGUI>();
+    private static DateTime startDate = new DateTime(start.Year, start.Month, start.Day, 0, 0, 0);
+    private static DateTime endDate = startDate.AddDays(1);
+    private static Dictionary<string, (Generator, List<MyObject>)> generators = new Dictionary<string, (Generator, List<MyObject>)>();
+
     static void Main(string[] args)
     {
-        string filePath = Path.Combine(Directory.GetCurrentDirectory(), "test.ftr");
-        Dictionary<string, (Generator, List<MyObject>)> generators = CreateDictionary();
-        Read(filePath, generators);
-        // string jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "backup.json");
-        // Serialize(generators, jsonPath);
-        
-        // Dictionary<string, (Generator, List<MyObject>)> generators = CreateDictionary2ndStage();
-        // CreateThreads(filePath, generators2);
-        Thread.Sleep(1000);
-        List<Flight> flights = GetFlightList(generators, "FL");
-        List<Airport> airports = GetAirportList(generators, "AI");
+        string filePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "test.ftr");
+
+        // Etap 1
+        generators = CreateDictionary();
+        Read(filePath);
+        // string jsonPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "backup.json");
+        // Serialize(jsonPath);
+
+        // Etap 2
+        // generators = CreateDictionary2ndStage();
+        // CreateThreads(filePath);
+        // Read(jsonPath);
+
+        // Etap 3
+        List<Flight> flights = GetFlightList("FL");
+        List<Airport> airports = GetAirportList("AI");
         NewThreads(flights, airports);
 
     }
-    static List<Flight> GetFlightList(Dictionary<string, (Generator generator, List<MyObject> list)> generators, string key)
+    static List<Flight> GetFlightList(string key)
     {
         (Generator, List <MyObject>) ans;
         
@@ -42,7 +56,7 @@ class Project
         }
         return flights;
     }
-    static List<Airport> GetAirportList(Dictionary<string, (Generator generator, List<MyObject> list)> generators, string key)
+    static List<Airport> GetAirportList(string key)
     {
         (Generator, List<MyObject>) ans;
 
@@ -56,7 +70,7 @@ class Project
     }
     static Dictionary<string, (Generator generator, List<MyObject> list)> CreateDictionary()
     {
-        Dictionary<string, (Generator generator, List<MyObject> list)> generators = new Dictionary<string, (Generator, List<MyObject>)>();
+        generators = new Dictionary<string, (Generator, List<MyObject>)>();
         generators.Add("C", (new CrewGenerator(), new List<MyObject>()));
         generators.Add("P", (new PassengerGenerator(), new List<MyObject>()));
         generators.Add("CA", (new CargoGenerator(), new List<MyObject>()));
@@ -68,7 +82,7 @@ class Project
     }
     static Dictionary<string, (Generator, List<MyObject>)> CreateDictionary2ndStage()
     {
-        Dictionary<string, (Generator generator, List<MyObject> list)> generators = new Dictionary<string, (Generator generator, List<MyObject> list)>();
+        generators = new Dictionary<string, (Generator generator, List<MyObject> list)>();
         generators.Add("NCR", (new CrewGenerator(), new List<MyObject>()));
         generators.Add("NPA", (new PassengerGenerator(), new List<MyObject>()));
         generators.Add("NCA", (new CargoGenerator(), new List<MyObject>()));
@@ -79,7 +93,7 @@ class Project
         return generators;
     }
 
-    static void Read(string filePath, Dictionary<string, (Generator, List<MyObject>)> generators)
+    static void Read(string filePath)
     {
         string? line;
         int lineNr = 1;
@@ -101,7 +115,7 @@ class Project
 
             try
             {
-                var obj = generator.Create(parms[1..]);
+                var obj = generator.Create(parms[0..]);
                 list.Add(obj);
             }
             catch (InvalidNumberOfArgsException ex)
@@ -115,9 +129,8 @@ class Project
             lineNr++;
         }
     }
-    static void Serialize(Dictionary<string, (Generator, List<MyObject>)> generators, string path)
-    {
-        
+    static void Serialize(string path)
+    {  
         using StreamWriter jsStream = new StreamWriter(path);
         string json;
 
@@ -131,8 +144,7 @@ class Project
                     jsStream.WriteLine(json);
                 }
             }
-        }
-        
+        }     
     }
     static void CreateThreads(string filePath, Dictionary<string, (Generator, List<MyObject>)> generators2)
     {
@@ -163,87 +175,70 @@ class Project
         nss.OnNewDataReady += dr.ReadData;
         console.Start();
         server.Start();
-       
-
     }
     
     static void SnapShot(Dictionary<string, (Generator, List<MyObject>)> generators)
     {
         DateTime now = DateTime.Now;
-        string jsonPath = Path.Combine(Directory.GetCurrentDirectory(), $"snapshot_{now.Hour}_{now.Minute}_{now.Second}.json");
-        Serialize(generators, jsonPath);
+        string jsonPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), $"snapshot_{now.Hour}_{now.Minute}_{now.Second}.json");
+        Serialize(jsonPath);
     }
     static void NewThreads(List<Flight> flights, List<Airport> airports)
     {
-        DateTime start = DateTime.Now;
-        FlightsGUIData flightsGUIData = new FlightsGUIData();
-        List<FlightGUI> flightsList = new List<FlightGUI>();
-        
-        DateTime startDate = new DateTime(start.Year, start.Month, start.Day, 0, 0, 0);
-        DateTime endDate = startDate.AddDays(1);
-        
-        Thread runner = new Thread(() =>
-        {
-            FlightTrackerGUI.Runner.Run();
-        });
-        
-        Thread updateFlights = new Thread(() =>
-        {
-            while (startDate <= endDate)
-            {
 
-                //TimeSpan diff = star - start;
-
-                lock (flightsList)
-                {
-                    flightsList.Clear();
-                    flightsGUIData.UpdateFlights(flightsList);
-                }
-
-                foreach (var flight in flights) 
-                {
-                    string format = "dd:MM:yyyy HH:mm:ss";
-                    CultureInfo provider = CultureInfo.InvariantCulture;
-
-                    DateTime takeOff = Convert.ToDateTime(flight.TakeOff);
-                    DateTime landing = Convert.ToDateTime(flight.Landing);
-
-                    if (DateTime.Compare(takeOff, landing) >= 0) continue;
-
-                    if (DateTime.Compare(takeOff, startDate) <= 0 && DateTime.Compare(landing, startDate) >= 0)
-                    {
-                        FlightAdapter flightGUI = new FlightAdapter(flight, airports, startDate);
-                        lock (flightsList)
-                            flightsList.Add(flightGUI);
-                    }
-                }
-                
-                lock (flightsGUIData)
-                    flightsGUIData.UpdateFlights(flightsList);
-                startDate = startDate.AddMinutes(30);
-                Thread.Sleep(1000);
-                
-            }
-            
-            return;
-        });
-        // FlightTrackerGUI.Runner.UpdateGUI(flightsGUIData);
-        Thread GUIdata = new Thread(() =>
-        {
-            while (startDate <= endDate)
-            { 
-                lock (flightsGUIData)
-                    FlightTrackerGUI.Runner.UpdateGUI(flightsGUIData);
-                Thread.Sleep(1000);
-            }
-            
-        });
+        Thread runner = new Thread(FlightTrackerGUI.Runner.Run);
+        Thread updateFlights = new Thread(updateFlightsFun);
+        Thread GUIdata = new Thread(GUIDataFun);
         runner.IsBackground = true;
         GUIdata.IsBackground = true;
+
         runner.Start();
         updateFlights.Start();
         GUIdata.Start();
-        
-        
+    }
+    static void GUIDataFun()
+    {
+        while (startDate <= endDate)
+        {
+            lock (flightsGUIData)
+                FlightTrackerGUI.Runner.UpdateGUI(flightsGUIData);
+            Thread.Sleep(1000);
+        }
+    }
+    static void updateFlightsFun()
+    {
+
+        var flights = GetFlightList("FL");
+        var airports = GetAirportList("AI");
+
+        while (startDate <= endDate)
+        {
+            lock (flightsList)
+            {
+                flightsList.Clear();
+                flightsGUIData.UpdateFlights(flightsList);
+            }
+
+            foreach (var flight in flights)
+            {
+                DateTime takeOff = Convert.ToDateTime(flight.TakeOff);
+                DateTime landing = Convert.ToDateTime(flight.Landing);
+
+                if (DateTime.Compare(takeOff, landing) >= 0) continue;
+
+                if (DateTime.Compare(takeOff, startDate) <= 0 && DateTime.Compare(landing, startDate) >= 0)
+                {
+                    FlightAdapter flightGUI = new FlightAdapter(flight, airports, startDate);
+                    lock (flightsList)
+                        flightsList.Add(flightGUI);
+                }
+            }
+
+            lock (flightsGUIData)
+                flightsGUIData.UpdateFlights(flightsList);
+            startDate = startDate.AddMinutes(10);
+            Thread.Sleep(1000);
+        }
+        return;
     }
 }

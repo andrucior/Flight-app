@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace projOb
@@ -21,13 +22,14 @@ namespace projOb
             ISO = null; 
             Model = null;
         }
+        [JsonConstructor]
         public Plane(string[] values): base(values)
         {
             if (values.Length < 4) throw new InvalidNumberOfArgsException();
             
-            Serial = values[1];
-            ISO = values[2];
-            Model = values[3];
+            Serial = values[2];
+            ISO = values[3];
+            Model = values[4];
         }
         public Plane(byte[] values) : base(values)
         {
@@ -56,13 +58,14 @@ namespace projOb
             BusinessClassSize = 0;
             EconomyClassSize = 0;
         }
+        [JsonConstructor]
         public PassengerPlane(string[] values) : base(values) 
         {
             if (values.Length < 7) throw new InvalidNumberOfArgsException();
 
-            FirstClassSize = Convert.ToUInt16(values[4]);
-            BusinessClassSize = Convert.ToUInt16(values[5]);
-            EconomyClassSize = Convert.ToUInt16(values[6]);
+            FirstClassSize = Convert.ToUInt16(values[5]);
+            BusinessClassSize = Convert.ToUInt16(values[6]);
+            EconomyClassSize = Convert.ToUInt16(values[7]);
         }
         public PassengerPlane(byte[] values): base(values)
         {
@@ -83,11 +86,12 @@ namespace projOb
         {
             MaxLoad = 0;
         }
+        [JsonConstructor]
         public CargoPlane(string[] values): base(values) 
         {
             if (values.Length < 5) throw new InvalidNumberOfArgsException();
 
-            MaxLoad = Convert.ToSingle(values[4]);
+            MaxLoad = Convert.ToSingle(values[5]);
         }
         public CargoPlane(byte[] values): base(values)
         {

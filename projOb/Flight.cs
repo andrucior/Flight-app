@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace projOb
@@ -34,26 +35,27 @@ namespace projOb
             CrewID = null;
             LoadID = null;
         }
+        [JsonConstructor]
         public Flight(string[] values): base(values)
         {
             if (values.Length < 11) throw new InvalidNumberOfArgsException();
 
-            OriginID = Convert.ToUInt64(values[1]);
-            TargetID = Convert.ToUInt64(values[2]);
-            TakeOff = values[3];
-            Landing = values[4];
-            Longitude = Convert.ToSingle(values[5], CultureInfo.InvariantCulture);
-            Latitude = Convert.ToSingle(values[6], CultureInfo.InvariantCulture);
-            AMSL = Convert.ToSingle(values[7], CultureInfo.InvariantCulture);
-            PlaneID = Convert.ToUInt64(values[8]);
+            OriginID = Convert.ToUInt64(values[2]);
+            TargetID = Convert.ToUInt64(values[3]);
+            TakeOff = values[4];
+            Landing = values[5];
+            Longitude = Convert.ToSingle(values[6], CultureInfo.InvariantCulture);
+            Latitude = Convert.ToSingle(values[7], CultureInfo.InvariantCulture);
+            AMSL = Convert.ToSingle(values[8], CultureInfo.InvariantCulture);
+            PlaneID = Convert.ToUInt64(values[9]);
             
-            string[] tmp = (values[9])
+            string[] tmp = (values[10])
                 .Trim('[', ']')
                 .Split(';');
             CrewID = new UInt64[tmp.Length];
             CrewID = tmp.Select(UInt64.Parse).ToArray();
 
-            string[] tmp2 = (values[10])
+            string[] tmp2 = (values[11])
                 .Trim('[', ']')
                 .Split(';');   
             LoadID = new UInt64[tmp2.Length];

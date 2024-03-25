@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace projOb
@@ -20,13 +21,14 @@ namespace projOb
             Code = null;
             Description = null;
         }
+        [JsonConstructor]
         public Cargo(string[] values): base(values)
         {
             if (values.Length < 4) throw new InvalidNumberOfArgsException();
 
-            Weight = Convert.ToSingle(values[1], CultureInfo.InvariantCulture);
-            Code = values[2];
-            Description = values[3];
+            Weight = Convert.ToSingle(values[2], CultureInfo.InvariantCulture);
+            Code = values[3];
+            Description = values[4];
         }
         public Cargo(byte[] values) : base(values)
         {
