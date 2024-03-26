@@ -1,3 +1,42 @@
+{"Name":"Alan Turing Airport","Code":"ALT","Longitude":112.05,"Latitude":-16.09,"AMSL":1487.52,"ISO":"1487.52","Abr":"AI","ID":0}
+{"Name":"Ada Lovelace Airport","Code":"ADA","Longitude":41.5,"Latitude":52.68,"AMSL":3676.04,"ISO":"3676.04","Abr":"AI","ID":1}
+{"Name":"Carl Gauss Airport","Code":"CGA","Longitude":74.77,"Latitude":35.27,"AMSL":2570.73,"ISO":"2570.73","Abr":"AI","ID":2}
+{"Name":"John von Neumann Airport","Code":"JVN","Longitude":113.68,"Latitude":-71.23,"AMSL":692.68,"ISO":"692.68","Abr":"AI","ID":3}
+{"Name":"Grace Hopper Airport","Code":"GHP","Longitude":175.55,"Latitude":15.54,"AMSL":473.4,"ISO":"473.4","Abr":"AI","ID":4}
+{"Name":"Blaise Pascal Airport","Code":"PSC","Longitude":158.21,"Latitude":-40.94,"AMSL":764.46,"ISO":"764.46","Abr":"AI","ID":5}
+{"Name":"Leonhard Euler Airport","Code":"EUL","Longitude":-118.53,"Latitude":66.04,"AMSL":3224.97,"ISO":"3224.97","Abr":"AI","ID":6}
+{"Name":"George Boole Airport","Code":"GBL","Longitude":123.46,"Latitude":1.06,"AMSL":1672.15,"ISO":"1672.15","Abr":"AI","ID":7}
+{"Name":"Alonzo Church Airport","Code":"ACH","Longitude":93.54,"Latitude":-53.06,"AMSL":908.5,"ISO":"908.5","Abr":"AI","ID":8}
+{"Name":"Kurt Godel Airport","Code":"KGD","Longitude":88.78,"Latitude":10.66,"AMSL":273.45,"ISO":"273.45","Abr":"AI","ID":9}
+{"MaxLoad":300,"Serial":"E40042","ISO":"USA","Model":"VectorSum A330","Abr":"CP","ID":10}
+{"MaxLoad":200,"Serial":"A97253","ISO":"CAN","Model":"IntegralLoad B757","Abr":"CP","ID":11}
+{"MaxLoad":150,"Serial":"X00134","ISO":"GBR","Model":"MatrixCargo C130","Abr":"CP","ID":12}
+{"MaxLoad":220,"Serial":"Z20225","ISO":"DEU","Model":"EquationMaster D747","Abr":"CP","ID":13}
+{"MaxLoad":190,"Serial":"H46217","ISO":"FRA","Model":"FunctionLift E190","Abr":"CP","ID":14}
+{"MaxLoad":600,"Serial":"V16515","ISO":"JPN","Model":"GeometryFreight F100","Abr":"CP","ID":15}
+{"MaxLoad":330,"Serial":"L23623","ISO":"AUS","Model":"AlgebraLoad G650","Abr":"CP","ID":16}
+{"FirstClassSize":2,"BusinessClassSize":14,"EconomyClassSize":24,"Serial":"Z15625","ISO":"DEU","Model":"PiFlyer A380","Abr":"PP","ID":17}
+{"FirstClassSize":3,"BusinessClassSize":10,"EconomyClassSize":32,"Serial":"X82033","ISO":"FRA","Model":"DeltaWing B787","Abr":"PP","ID":18}
+{"FirstClassSize":1,"BusinessClassSize":19,"EconomyClassSize":27,"Serial":"N19779","ISO":"JPN","Model":"SigmaJet C350","Abr":"PP","ID":19}
+{"FirstClassSize":5,"BusinessClassSize":16,"EconomyClassSize":30,"Serial":"H27925","ISO":"AUS","Model":"ThetaAir D320","Abr":"PP","ID":20}
+{"FirstClassSize":3,"BusinessClassSize":11,"EconomyClassSize":42,"Serial":"Z05228","ISO":"ITA","Model":"LambdaClass E170","Abr":"PP","ID":21}
+{"FirstClassSize":4,"BusinessClassSize":12,"EconomyClassSize":21,"Serial":"W46842","ISO":"BRA","Model":"RhoRanger F220","Abr":"PP","ID":22}
+{"FirstClassSize":2,"BusinessClassSize":10,"EconomyClassSize":25,"Serial":"T21064","ISO":"IND","Model":"EpsilonCruiser G280","Abr":"PP","ID":23}
+{"Weight":18.77,"Code":"LRQ646","Description":"Electronics","Abr":"CA","ID":24}
+{"Weight":33.49,"Code":"ZMI168","Description":"Pharmaceuticals","Abr":"CA","ID":25}
+{"Weight":42.25,"Code":"KUU989","Description":"Perishable food items","Abr":"CA","ID":26}
+{"Weight":24,"Code":"GVQ884","Description":"Clothing and apparel","Abr":"CA","ID":27}
+{"Weight":14.43,"Code":"ZXH867","Description":"Automotive parts","Abr":"CA","ID":28}
+{"Weight":6.35,"Code":"SPB009","Description":"Machinery and equipment","Abr":"CA","ID":29}
+{"Weight":5.85,"Code":"OTO611","Description":"Consumer goods","Abr":"CA","ID":30}
+{"Weight":45.6,"Code":"CWI615","Description":"Live animals","Abr":"CA","ID":31}
+{"Weight":6.17,"Code":"JNL749","Description":"Medical supplies","Abr":"CA","ID":32}
+{"Weight":37.85,"Code":"UGN244","Description":"High-value items","Abr":"CA","ID":33}
+{"Weight":13.88,"Code":"MEZ625","Description":"Dangerous goods","Abr":"CA","ID":34}
+{"Weight":17.51,"Code":"THI925","Description":"Documents and mail","Abr":"CA","ID":35}
+{"Weight":20.18,"Code":"UZC279","Description":"Agricultural products","Abr":"CA","ID":36}
+{"Weight":6.53,"Code":"CZT523","Description":"Seafood","Abr":"CA","ID":37}
+{"Weight":21.28,"Code":"SAI554","Description":"Emergency supplies","Abr":"CA","ID":38}
 {"Practice":11,"Role":"Captain","Name":"Arthur Montes","Age":36,"Phone":"743-220-9642","Email":"arthurmontes7885@gmail.com","Abr":"C","ID":39}
 {"Practice":18,"Role":"Captain","Name":"Lauren Bryan","Age":38,"Phone":"572-184-2454","Email":"laurenbryan3050@gmail.com","Abr":"C","ID":40}
 {"Practice":1,"Role":"Captain","Name":"Judy Murphy","Age":30,"Phone":"608-501-5175","Email":"judymurphy3354@gmail.com","Abr":"C","ID":41}
@@ -938,45 +977,6 @@
 {"Class":"Economy","Miles":22470,"Name":"Eric Cervantes","Age":45,"Phone":"608-816-0570","Email":"ericcervantes6268@gmail.com","Abr":"P","ID":976}
 {"Class":"Economy","Miles":10914,"Name":"Miranda Smith","Age":52,"Phone":"153-607-0628","Email":"mirandasmith7448@gmail.com","Abr":"P","ID":977}
 {"Class":"Economy","Miles":16615,"Name":"Charles Higgins","Age":60,"Phone":"945-475-9592","Email":"charleshiggins9687@gmail.com","Abr":"P","ID":978}
-{"Weight":18.77,"Code":"LRQ646","Description":"Electronics","Abr":"CA","ID":24}
-{"Weight":33.49,"Code":"ZMI168","Description":"Pharmaceuticals","Abr":"CA","ID":25}
-{"Weight":42.25,"Code":"KUU989","Description":"Perishable food items","Abr":"CA","ID":26}
-{"Weight":24,"Code":"GVQ884","Description":"Clothing and apparel","Abr":"CA","ID":27}
-{"Weight":14.43,"Code":"ZXH867","Description":"Automotive parts","Abr":"CA","ID":28}
-{"Weight":6.35,"Code":"SPB009","Description":"Machinery and equipment","Abr":"CA","ID":29}
-{"Weight":5.85,"Code":"OTO611","Description":"Consumer goods","Abr":"CA","ID":30}
-{"Weight":45.6,"Code":"CWI615","Description":"Live animals","Abr":"CA","ID":31}
-{"Weight":6.17,"Code":"JNL749","Description":"Medical supplies","Abr":"CA","ID":32}
-{"Weight":37.85,"Code":"UGN244","Description":"High-value items","Abr":"CA","ID":33}
-{"Weight":13.88,"Code":"MEZ625","Description":"Dangerous goods","Abr":"CA","ID":34}
-{"Weight":17.51,"Code":"THI925","Description":"Documents and mail","Abr":"CA","ID":35}
-{"Weight":20.18,"Code":"UZC279","Description":"Agricultural products","Abr":"CA","ID":36}
-{"Weight":6.53,"Code":"CZT523","Description":"Seafood","Abr":"CA","ID":37}
-{"Weight":21.28,"Code":"SAI554","Description":"Emergency supplies","Abr":"CA","ID":38}
-{"MaxLoad":300,"Serial":"E40042","ISO":"USA","Model":"VectorSum A330","Abr":"CP","ID":10}
-{"MaxLoad":200,"Serial":"A97253","ISO":"CAN","Model":"IntegralLoad B757","Abr":"CP","ID":11}
-{"MaxLoad":150,"Serial":"X00134","ISO":"GBR","Model":"MatrixCargo C130","Abr":"CP","ID":12}
-{"MaxLoad":220,"Serial":"Z20225","ISO":"DEU","Model":"EquationMaster D747","Abr":"CP","ID":13}
-{"MaxLoad":190,"Serial":"H46217","ISO":"FRA","Model":"FunctionLift E190","Abr":"CP","ID":14}
-{"MaxLoad":600,"Serial":"V16515","ISO":"JPN","Model":"GeometryFreight F100","Abr":"CP","ID":15}
-{"MaxLoad":330,"Serial":"L23623","ISO":"AUS","Model":"AlgebraLoad G650","Abr":"CP","ID":16}
-{"FirstClassSize":2,"BusinessClassSize":14,"EconomyClassSize":24,"Serial":"Z15625","ISO":"DEU","Model":"PiFlyer A380","Abr":"PP","ID":17}
-{"FirstClassSize":3,"BusinessClassSize":10,"EconomyClassSize":32,"Serial":"X82033","ISO":"FRA","Model":"DeltaWing B787","Abr":"PP","ID":18}
-{"FirstClassSize":1,"BusinessClassSize":19,"EconomyClassSize":27,"Serial":"N19779","ISO":"JPN","Model":"SigmaJet C350","Abr":"PP","ID":19}
-{"FirstClassSize":5,"BusinessClassSize":16,"EconomyClassSize":30,"Serial":"H27925","ISO":"AUS","Model":"ThetaAir D320","Abr":"PP","ID":20}
-{"FirstClassSize":3,"BusinessClassSize":11,"EconomyClassSize":42,"Serial":"Z05228","ISO":"ITA","Model":"LambdaClass E170","Abr":"PP","ID":21}
-{"FirstClassSize":4,"BusinessClassSize":12,"EconomyClassSize":21,"Serial":"W46842","ISO":"BRA","Model":"RhoRanger F220","Abr":"PP","ID":22}
-{"FirstClassSize":2,"BusinessClassSize":10,"EconomyClassSize":25,"Serial":"T21064","ISO":"IND","Model":"EpsilonCruiser G280","Abr":"PP","ID":23}
-{"Name":"Alan Turing Airport","Code":"ALT","Longitude":112.05,"Latitude":-16.09,"AMSL":1487.52,"ISO":"1487.52","Abr":"AI","ID":0}
-{"Name":"Ada Lovelace Airport","Code":"ADA","Longitude":41.5,"Latitude":52.68,"AMSL":3676.04,"ISO":"3676.04","Abr":"AI","ID":1}
-{"Name":"Carl Gauss Airport","Code":"CGA","Longitude":74.77,"Latitude":35.27,"AMSL":2570.73,"ISO":"2570.73","Abr":"AI","ID":2}
-{"Name":"John von Neumann Airport","Code":"JVN","Longitude":113.68,"Latitude":-71.23,"AMSL":692.68,"ISO":"692.68","Abr":"AI","ID":3}
-{"Name":"Grace Hopper Airport","Code":"GHP","Longitude":175.55,"Latitude":15.54,"AMSL":473.4,"ISO":"473.4","Abr":"AI","ID":4}
-{"Name":"Blaise Pascal Airport","Code":"PSC","Longitude":158.21,"Latitude":-40.94,"AMSL":764.46,"ISO":"764.46","Abr":"AI","ID":5}
-{"Name":"Leonhard Euler Airport","Code":"EUL","Longitude":-118.53,"Latitude":66.04,"AMSL":3224.97,"ISO":"3224.97","Abr":"AI","ID":6}
-{"Name":"George Boole Airport","Code":"GBL","Longitude":123.46,"Latitude":1.06,"AMSL":1672.15,"ISO":"1672.15","Abr":"AI","ID":7}
-{"Name":"Alonzo Church Airport","Code":"ACH","Longitude":93.54,"Latitude":-53.06,"AMSL":908.5,"ISO":"908.5","Abr":"AI","ID":8}
-{"Name":"Kurt Godel Airport","Code":"KGD","Longitude":88.78,"Latitude":10.66,"AMSL":273.45,"ISO":"273.45","Abr":"AI","ID":9}
 {"OriginID":2,"TargetID":5,"TakeOff":"13:06","Landing":"20:17","Longitude":110.41,"Latitude":12.7,"AMSL":11416,"PlaneID":21,"CrewID":[60,123,117,230,241,191,90,194,164],"LoadID":[351,361,343,392,432,387,457,405,396,429,452,389,606,515,728,572,909,623,908,885,929,778,847,872,584,949,795,741,625,527,868,867,884],"Abr":"FL","ID":1038}
 {"OriginID":8,"TargetID":4,"TakeOff":"12:06","Landing":"13:43","Longitude":151.22,"Latitude":-35.39,"AMSL":10639,"PlaneID":17,"CrewID":[65,160,90,93,82,142,113,127,291],"LoadID":[338,443,408,412,447,383,458,441,414,449,469,453,460,472,832,971,906,934,789,812,955,803,514,919,768,706,668,621,558,968,630,925,791,809,912,884,875,646],"Abr":"FL","ID":1010}
 {"OriginID":8,"TargetID":7,"TakeOff":"07:18","Landing":"06:16","Longitude":103.18,"Latitude":-48.31,"AMSL":9428,"PlaneID":23,"CrewID":[56,206,223,230,248,112,133,252,300],"LoadID":[362,359,467,385,383,417,380,419,449,439,617,625,843,848,766,498,903,883,503,501,808,771,805,733,729,618,706,518],"Abr":"FL","ID":1021}

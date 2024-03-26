@@ -11,7 +11,7 @@ namespace projOb
     [Serializable]
     public abstract class MyObject
     {
-        public string Abr { get; set; }
+        public string? Abr { get; set; }
         public UInt64 ID { get; set; }
         public MyObject() { ID = 0; Abr = string.Empty; }
         [JsonConstructor]

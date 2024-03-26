@@ -19,76 +19,72 @@ class Project
     private static List<FlightGUI> flightsList = new List<FlightGUI>();
     private static DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0);
     private static DateTime endDate = startDate.AddDays(1);
-    private static Dictionary<string, (Generator, List<MyObject>)> generators = new Dictionary<string, (Generator, List<MyObject>)>();
+    private static Dictionary<string, Generator> generators = new Dictionary<string, Generator>();
     private static List<Flight> flights = new List<Flight>();
     private static List<Airport> airports = new List<Airport>();
+    private static List<MyObject> myObjects = new List<MyObject>();
     static void Main(string[] args)
     {
         string filePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "test.ftr");
         string jsonPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "backup.json");
         
         // Etap 1
-        // generators = CreateDictionary();
-        // Read(filePath);
-        // Serialize(jsonPath);
+        generators = CreateDictionary();
+        Read(filePath);
+        Serialize(jsonPath);
         
         // Etap 2
-        generators = CreateDictionary2ndStage();
-        CreateThreads2ndStage(filePath);
-        Thread.Sleep(1000);
+        // generators = CreateDictionary2ndStage();
+        // CreateThreads2ndStage(filePath);
+        // Thread.Sleep(1000);
         
         // Etap 3
-        flights = GetFlightList("NFL");
-        airports = GetAirportList("NAI");
+        // W zaleznosci od uzytego etapu dobrac klucze
+        // Dla 1 - "FL" i "AI", dla 2 - "NFL" i "NAI"
+        flights = GetFlightList("FL");
+        airports = GetAirportList("AI");
         CreateThreads3rdStage();
 
     }
     static List<Flight> GetFlightList(string key)
     {
-        (Generator, List <MyObject>) ans;
-        
-        generators.TryGetValue(key, out ans);
-        List<Flight> flights = new List<Flight>();
-        foreach (Flight flight in ans.Item2) 
-        { 
-            flights.Add(flight);    
-        }
-        return flights;
+        Generator? generator;
+        generators.TryGetValue(key, out generator);
+        if (generator == null) throw new Exception("Generator not found - invalid key");
+
+        return Generator.List.Flights;
     }
     static List<Airport> GetAirportList(string key)
     {
-        (Generator, List<MyObject>) ans;
+        Generator? generator;
+        generators.TryGetValue(key, out generator);
+        if (generator == null) throw new Exception("Generator not found - invalid key");
 
-        generators.TryGetValue(key, out ans);
-        List<Airport> airports = new List<Airport>();
-        foreach (Airport airport in ans.Item2)
-        {
-            airports.Add(airport);
-        }
-        return airports;
+        return Generator.List.Airports;
     }
-    static Dictionary<string, (Generator generator, List<MyObject> list)> CreateDictionary()
+    
+    static Dictionary<string, Generator> CreateDictionary()
     {
-        generators = new Dictionary<string, (Generator, List<MyObject>)>();
-        generators.Add("C", (new CrewGenerator(), new List<MyObject>()));
-        generators.Add("P", (new PassengerGenerator(), new List<MyObject>()));
-        generators.Add("CA", (new CargoGenerator(), new List<MyObject>()));
-        generators.Add("CP", (new CargoPlaneGenerator(), new List<MyObject>()));
-        generators.Add("PP", (new PassengerPlaneGenerator(), new List<MyObject>()));
-        generators.Add("AI", (new AirportGenerator(), new List<MyObject>()));
-        generators.Add("FL", (new FlightGenerator(), new List<MyObject>()));
+        generators = new Dictionary<string, Generator>();
+        generators.Add("C", new CrewGenerator());
+        generators.Add("P", new PassengerGenerator());
+        generators.Add("CA", new CargoGenerator());
+        generators.Add("CP", new CargoPlaneGenerator());
+        generators.Add("PP", new PassengerPlaneGenerator());
+        generators.Add("AI", new AirportGenerator());
+        generators.Add("FL", new FlightGenerator());
         return generators;
     }
-    static Dictionary<string, (Generator, List<MyObject>)> CreateDictionary2ndStage()
+    static Dictionary<string, Generator> CreateDictionary2ndStage()
     {
-        generators = new Dictionary<string, (Generator generator, List<MyObject> list)>();
-        generators.Add("NCR", (new CrewGenerator(), new List<MyObject>()));
-        generators.Add("NPA", (new PassengerGenerator(), new List<MyObject>()));
-        generators.Add("NCA", (new CargoGenerator(), new List<MyObject>()));
-        generators.Add("NCP", (new CargoPlaneGenerator(), new List<MyObject>()));
-        generators.Add("NPP", (new PassengerPlaneGenerator(), new List<MyObject>()));
-        generators.Add("NAI", (new AirportGenerator(), new List<MyObject>()));
-        generators.Add("NFL", (new FlightGenerator(), new List<MyObject>()));
+        generators = new Dictionary<string, Generator>();
+        generators.Add("NCR", new CrewGenerator());
+        generators.Add("NPA", new PassengerGenerator());
+        generators.Add("NCA", new CargoGenerator());
+        generators.Add("NCP", new CargoPlaneGenerator());
+        generators.Add("NPP", new PassengerPlaneGenerator());
+        generators.Add("NAI", new AirportGenerator());
+        generators.Add("NFL", new FlightGenerator());
         return generators;
     }
 
@@ -106,14 +102,14 @@ class Project
             string name = parms[0];
 
             if (!generators.TryGetValue(name, out var tuple)) throw new ArgumentException();
-            
-            var generator = tuple.Item1;
-            var list = tuple.Item2;
-
+          
             try
             {
-                var obj = generator.Create(parms[0..]);
-                list.Add(obj);
+                var obj = tuple.Create(parms[0..]);
+                lock (myObjects)
+                {
+                    myObjects.Add(obj);
+                }
             }
             catch (InvalidNumberOfArgsException ex)
             {
@@ -130,18 +126,14 @@ class Project
     {  
         using StreamWriter jsStream = new StreamWriter(path);
         string json;
-
-        foreach (var list in generators.Values)
+        lock (myObjects)
         {
-            lock (list.Item2)
+            foreach (var obj in myObjects)
             {
-                foreach (var obj in list.Item2)
-                {
-                    json = obj.JsonSerialize();
-                    jsStream.WriteLine(json);
-                }
+                json = obj.JsonSerialize();
+                jsStream.WriteLine(json);
             }
-        }     
+        }
     }
     static void CreateThreads2ndStage(string filePath)
     {
@@ -161,19 +153,19 @@ class Project
                 }
                 if (message == "print")
                 {
-                    SnapShot(generators);
+                    SnapShot();
                 }
             }
             return;
         });
        
-        DataReader dr = new DataReaderGenerator().Create(nss, generators);
+        DataReader dr = new DataReaderGenerator().Create(nss, generators, myObjects);
         nss.OnNewDataReady += dr.ReadData;
         console.Start();
         server.Start();
     }
     
-    static void SnapShot(Dictionary<string, (Generator, List<MyObject>)> generators)
+    static void SnapShot()
     {
         DateTime now = DateTime.Now;
         string jsonPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), $"snapshot_{now.Hour}_{now.Minute}_{now.Second}.json");
@@ -228,7 +220,7 @@ class Project
 
             lock (flightsGUIData)
                 flightsGUIData.UpdateFlights(flightsList);
-            startDate = startDate.AddMinutes(10);
+            startDate = startDate.AddMinutes(60);
             Thread.Sleep(1000);
         }
 
