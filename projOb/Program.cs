@@ -10,38 +10,37 @@ using System.Drawing;
 using System.Globalization;
 using System.Net.WebSockets;
 using Avalonia.Controls.Shapes;
-// namespace NetworkSourceSimulator;
 namespace FlightTrackerGUI;
 
 class Project
 {
     volatile private static bool running = true;
-    private static DateTime start = DateTime.Now;
     private static FlightsGUIData flightsGUIData = new FlightsGUIData();
     private static List<FlightGUI> flightsList = new List<FlightGUI>();
-    private static DateTime startDate = new DateTime(start.Year, start.Month, start.Day, 0, 0, 0);
+    private static DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0);
     private static DateTime endDate = startDate.AddDays(1);
     private static Dictionary<string, (Generator, List<MyObject>)> generators = new Dictionary<string, (Generator, List<MyObject>)>();
-
+    private static List<Flight> flights = new List<Flight>();
+    private static List<Airport> airports = new List<Airport>();
     static void Main(string[] args)
     {
         string filePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "test.ftr");
-
+        string jsonPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "backup.json");
+        
         // Etap 1
-        generators = CreateDictionary();
-        Read(filePath);
-        // string jsonPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "backup.json");
+        // generators = CreateDictionary();
+        // Read(filePath);
         // Serialize(jsonPath);
-
+        
         // Etap 2
-        // generators = CreateDictionary2ndStage();
-        // CreateThreads(filePath);
-        // Read(jsonPath);
-
+        generators = CreateDictionary2ndStage();
+        CreateThreads2ndStage(filePath);
+        Thread.Sleep(1000);
+        
         // Etap 3
-        List<Flight> flights = GetFlightList("FL");
-        List<Airport> airports = GetAirportList("AI");
-        NewThreads(flights, airports);
+        flights = GetFlightList("NFL");
+        airports = GetAirportList("NAI");
+        CreateThreads3rdStage();
 
     }
     static List<Flight> GetFlightList(string key)
@@ -98,10 +97,8 @@ class Project
         string? line;
         int lineNr = 1;
         
-        
         using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
         using StreamReader sr = new StreamReader(fileStream);
-       
 
         while ((line = sr.ReadLine()) != null)
         {
@@ -146,10 +143,10 @@ class Project
             }
         }     
     }
-    static void CreateThreads(string filePath, Dictionary<string, (Generator, List<MyObject>)> generators2)
+    static void CreateThreads2ndStage(string filePath)
     {
         string? message;
-        NetworkSourceSimulator.NetworkSourceSimulator nss = new NetworkSourceSimulator.NetworkSourceSimulator(filePath, 0, 1);
+        NetworkSourceSimulator.NetworkSourceSimulator nss = new NetworkSourceSimulator.NetworkSourceSimulator(filePath, 0, 0);
         Thread server = new Thread(nss.Run);
         Thread console = new Thread(() =>
         {
@@ -164,14 +161,13 @@ class Project
                 }
                 if (message == "print")
                 {
-                    SnapShot(generators2);
+                    SnapShot(generators);
                 }
             }
             return;
         });
        
-
-        DataReader dr = new DataReaderGenerator().Create(nss, generators2);
+        DataReader dr = new DataReaderGenerator().Create(nss, generators);
         nss.OnNewDataReady += dr.ReadData;
         console.Start();
         server.Start();
@@ -183,15 +179,13 @@ class Project
         string jsonPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), $"snapshot_{now.Hour}_{now.Minute}_{now.Second}.json");
         Serialize(jsonPath);
     }
-    static void NewThreads(List<Flight> flights, List<Airport> airports)
+    static void CreateThreads3rdStage()
     {
-
         Thread runner = new Thread(FlightTrackerGUI.Runner.Run);
         Thread updateFlights = new Thread(updateFlightsFun);
         Thread GUIdata = new Thread(GUIDataFun);
         runner.IsBackground = true;
         GUIdata.IsBackground = true;
-
         runner.Start();
         updateFlights.Start();
         GUIdata.Start();
@@ -207,10 +201,6 @@ class Project
     }
     static void updateFlightsFun()
     {
-
-        var flights = GetFlightList("FL");
-        var airports = GetAirportList("AI");
-
         while (startDate <= endDate)
         {
             lock (flightsList)
@@ -224,13 +214,15 @@ class Project
                 DateTime takeOff = Convert.ToDateTime(flight.TakeOff);
                 DateTime landing = Convert.ToDateTime(flight.Landing);
 
-                if (DateTime.Compare(takeOff, landing) >= 0) continue;
-
-                if (DateTime.Compare(takeOff, startDate) <= 0 && DateTime.Compare(landing, startDate) >= 0)
+                if (DateTime.Compare(takeOff, landing) < 0)
                 {
-                    FlightAdapter flightGUI = new FlightAdapter(flight, airports, startDate);
-                    lock (flightsList)
-                        flightsList.Add(flightGUI);
+                    if (DateTime.Compare(takeOff, startDate) <= 0 && DateTime.Compare(landing, startDate) >= 0)
+                    {
+                        FlightAdapterGenerator flightAdapterGenerator = new FlightAdapterGenerator();
+                        FlightGUI flightGUI = flightAdapterGenerator.Create(flight, airports, startDate);
+                        lock (flightsList)
+                            flightsList.Add(flightGUI);
+                    }
                 }
             }
 
@@ -239,6 +231,7 @@ class Project
             startDate = startDate.AddMinutes(10);
             Thread.Sleep(1000);
         }
+
         return;
     }
 }

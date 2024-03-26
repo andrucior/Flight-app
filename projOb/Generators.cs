@@ -64,4 +64,8 @@ namespace projOb
     {
         public DataReader Create(NetworkSourceSimulator.NetworkSourceSimulator nss, Dictionary<string, (Generator, List<MyObject>)> generators) { return new DataReader(nss, ref generators); }
     }
+    public class FlightAdapterGenerator
+    {
+        public FlightAdapter Create(Flight flight, List<Airport> airports,DateTime dateTime) { return new FlightAdapter(flight, airports, dateTime); }
+    }
 }
