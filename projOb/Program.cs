@@ -23,20 +23,15 @@ class Project
     private static List<Flight> flights = new List<Flight>();
     private static List<Airport> airports = new List<Airport>();
     private static List<MyObject> myObjects = new List<MyObject>();
-
-    // Wzorce:
-    // - visitor
-    // - iterator
-
     static void Main(string[] args)
     {
         string filePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "test.ftr");
-        string jsonPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "backup.json");
+        // string jsonPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "backup.json");
 
         // Etap 1
         generators = CreateDictionary();
         Read(filePath);
-        Serialize(jsonPath);
+        // Serialize(jsonPath);
 
         // Etap 2
         // generators = CreateDictionary2ndStage();
@@ -45,7 +40,7 @@ class Project
 
         // Etap 3
         // flights = GetFlightList();
-        airports = GetAirportList();
+        // airports = GetAirportList();
         // CreateThreads3rdStage();
 
         // Etap 4
@@ -162,13 +157,6 @@ class Project
                 {
                     SnapShot();
                 }
-                if (message == "report")
-                {
-                    /*
-                    report wypisuje na konsolę przegląd wiadomości wygenerowany na podstawie danych
-                    wczytanych z pliku FTR
-                    */
-                }
             }
             return;
         });
@@ -188,7 +176,7 @@ class Project
     static void CreateThreads3rdStage()
     {
         Thread runner = new Thread(FlightTrackerGUI.Runner.Run);
-        Thread updateFlights = new Thread(updateFlightsFun);
+        Thread updateFlights = new Thread(UpdateFlightsFun);
         Thread GUIdata = new Thread(GUIDataFun);
         runner.IsBackground = true;
         GUIdata.IsBackground = true;
@@ -205,7 +193,7 @@ class Project
             Thread.Sleep(1000);
         }
     }
-    static void updateFlightsFun()
+    static void UpdateFlightsFun()
     {
         while (startDate <= endDate)
         {
@@ -240,14 +228,13 @@ class Project
 
         return;
     }
-    static void Program4thStage()
+    static List<Media> CreateMediaList()
     {
         string[] radioNames = { "Radio Kwantyfikator", "Radio Shmem" };
         string[] tvNames = { "Telewizja Abelowa", "Kanał TV-tensor" };
         string[] newspaperNames = { "Gazeta Kategoryczna", "Dziennik Politechniczny" };
 
         List<Media> medias = new List<Media>();
-
         RadioGenerator radioGenerator = new RadioGenerator();
         TVGenerator TVGenerator = new TVGenerator();
         NewspaperGenerator newspaperGenerator = new NewspaperGenerator();
@@ -258,17 +245,34 @@ class Project
             medias.Add(TVGenerator.Create(tvNames[i]));
         for (int i = 0; i < newspaperNames.Length; i++)
             medias.Add(newspaperGenerator.Create(newspaperNames[i]));
-
-        NewsGenerator newsGenerator = new NewsGenerator(medias, GetReportableList());
-        while (newsGenerator.HasMore())
-            Console.WriteLine(newsGenerator.GenerateTextNews());
-        while (true)
+        
+        return medias;
+    }
+    static void Program4thStage()
+    {
+        List<Media> medias = CreateMediaList();
+        
+        while (Project.running)
         {
-            if (Console.ReadLine() == "report")
+            string? message = Console.ReadLine();
+
+            if (message == "report")
             {
-                if (newsGenerator.GenerateTextNews() == null)
-                    Console.WriteLine("No more news to be generated");
+                NewsGenerator newsGenerator = new NewsGenerator(medias, GetReportableList());
+                string? output = newsGenerator.GenerateTextNews();
+                
+                while (output != null)
+                {
+                    Console.WriteLine(output);
+                    output = newsGenerator.GenerateTextNews();
+                }
             }
+            
+            if (message == "exit")
+                Project.running = false;
+            
+            if (message == null)
+                throw new Exception("Error occured while reading from console");
         }
     }
 }

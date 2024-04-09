@@ -7,38 +7,47 @@ using System.Threading.Tasks;
 
 namespace projOb
 {
-    public class NewsGenerator
+    public class NewsIterator
     {
-        private (Media media, IReportable reportable)[] Reportables;
+        private readonly List<(Media media, IReportable reportable)> Reportables;
         private int IterationState;
-        public NewsGenerator(List<Media> media, List<IReportable> reportables) 
+        public NewsIterator(List<(Media media, IReportable reportable)> reportables)
         {
-            Reportables = new (Media, IReportable)[media.Count * reportables.Count];
-            int size = 0;
-            for (int i = 0; i < media.Count; i++)
-            {
-                for (int j = 0; j < reportables.Count; j++)
-                {
-                    Reportables[size++] = (media[i], reportables[j]);
-                }
-            }
+            Reportables = reportables;
             IterationState = 0;
         }
         public bool HasMore()
         {
-            return IterationState < Reportables.Length;
+            return IterationState < Reportables.Count;
         }
-        public string? GenerateTextNews()
+        public (Media media, IReportable reportable)? GetNext()
         {
-            if (HasMore())
-            {
-                IReportable reportable = Reportables[IterationState].reportable;
-                Media media = Reportables[IterationState++].media;
-                return reportable.Accept(media);
-            }
+            if (HasMore()) 
+                return Reportables[IterationState++];
             return null;
         }
 
     }
-    
+    public class NewsGenerator
+    {
+        private NewsIterator Iterator;
+        public NewsGenerator(List<Media> media, List<IReportable> reportables) 
+        {
+            List<(Media media, IReportable reportable)> list = new List<(Media media, IReportable reportable)>();
+
+            for (int i = 0; i < media.Count; i++)
+                for (int j = 0; j < reportables.Count; j++)
+                    list.Add((media[i], reportables[j]));
+            Iterator = new NewsIterator(list);
+        }
+        public string? GenerateTextNews()
+        {
+            if (Iterator.HasMore())
+            {
+                (Media media, IReportable reportable) = Iterator.GetNext().Value;
+                return reportable.Accept(media);
+            }
+            return null;
+        }
+    }
 }
