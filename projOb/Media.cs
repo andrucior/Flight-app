@@ -13,13 +13,18 @@ namespace projOb
     }
     public abstract class Media
     {
-        public string? Name { get; set; }
+        public string? Name;
+        public Media(string name)
+        {
+            Name = name;
+        }
         public abstract string CreateMessage(Airport airport);
         public abstract string CreateMessage(CargoPlane cargoPlane);
         public abstract string CreateMessage(PassengerPlane passengerPlane);
     }
     public class Radio : Media
     {
+        public Radio(string name) : base(name) { }
         public override string CreateMessage(Airport airport) 
         { 
             return $"Reporting for {Name}, Ladies and gentlemen, we are at the {airport.Name} airport"; 
@@ -35,6 +40,7 @@ namespace projOb
     }
     public class Television : Media
     {
+        public Television(string name) : base(name) { }
         public override string CreateMessage(Airport airport) 
         {
             return $"<An image of {airport.Name} airport>";
@@ -51,6 +57,7 @@ namespace projOb
 
     public class Newspaper : Media
     {
+        public Newspaper(string name) : base(name) { }
         public override string CreateMessage(Airport airport) 
         { 
             return $"{Name} - A report from the {airport.Name} airport, {airport.ISO}"; 

@@ -32,63 +32,44 @@ class Project
     {
         string filePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "test.ftr");
         string jsonPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "backup.json");
-        
+
         // Etap 1
         generators = CreateDictionary();
         Read(filePath);
         Serialize(jsonPath);
-        
+
         // Etap 2
         // generators = CreateDictionary2ndStage();
         // CreateThreads2ndStage(filePath);
         // Thread.Sleep(1000);
-        
+
         // Etap 3
-        // W zaleznosci od uzytego etapu dobrac klucze
-        // Dla 1 - "FL" i "AI", dla 2 - "NFL" i "NAI"
-        // flights = GetFlightList("FL");
-        airports = GetAirportList("AI");
+        // flights = GetFlightList();
+        airports = GetAirportList();
         // CreateThreads3rdStage();
 
         // Etap 4
-        Radio r = new Radio()
-        {
-            Name = "Max Kolonko"
-        };
-        Television tv = new Television()
-        {
-            Name = "Telewizja republika"
-        };
-        Newspaper newspaper = new Newspaper()
-        {
-            Name = "Gazeta Okręgu Trzech Stanów"
-        };
-        string radioMessage = airports[0].Accept(r);
-        string tvMessage = airports[0].Accept(tv);
-        string newspaperMessage = airports[0].Accept(newspaper);
-        Console.WriteLine(radioMessage);
-        Console.WriteLine(tvMessage);
-        Console.WriteLine(newspaperMessage);
-
+        Program4thStage();
 
     }
-    static List<Flight> GetFlightList(string key)
+    static List<Flight> GetFlightList()
     {
-        Generator? generator;
-        generators.TryGetValue(key, out generator);
-        if (generator == null) throw new Exception("Generator not found - invalid key");
-
         return Generator.List.Flights;
     }
-    static List<Airport> GetAirportList(string key)
+    static List<Airport> GetAirportList()
     {
-        Generator? generator;
-        generators.TryGetValue(key, out generator);
-        if (generator == null) throw new Exception("Generator not found - invalid key");
-
         return Generator.List.Airports;
     }
-    
+    static List<IReportable> GetReportableList()
+    {
+        List<IReportable> reportables = new List<IReportable>();
+        reportables.AddRange(Generator.List.Airports);
+        reportables.AddRange(Generator.List.CargoPlanes);
+        reportables.AddRange(Generator.List.PassengerPlaneList);
+        return reportables;
+    }
+
+
     static Dictionary<string, Generator> CreateDictionary()
     {
         generators = new Dictionary<string, Generator>();
@@ -118,7 +99,7 @@ class Project
     {
         string? line;
         int lineNr = 1;
-        
+
         using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
         using StreamReader sr = new StreamReader(fileStream);
 
@@ -128,7 +109,7 @@ class Project
             string name = parms[0];
 
             if (!generators.TryGetValue(name, out var tuple)) throw new ArgumentException();
-          
+
             try
             {
                 var obj = tuple.Create(parms[0..]);
@@ -149,7 +130,7 @@ class Project
         }
     }
     static void Serialize(string path)
-    {  
+    {
         using StreamWriter jsStream = new StreamWriter(path);
         string json;
         lock (myObjects)
@@ -191,13 +172,13 @@ class Project
             }
             return;
         });
-       
+
         DataReader dr = new DataReaderGenerator().Create(nss, generators, myObjects);
         nss.OnNewDataReady += dr.ReadData;
         console.Start();
         server.Start();
     }
-    
+
     static void SnapShot()
     {
         DateTime now = DateTime.Now;
@@ -258,5 +239,36 @@ class Project
         }
 
         return;
+    }
+    static void Program4thStage()
+    {
+        string[] radioNames = { "Radio Kwantyfikator", "Radio Shmem" };
+        string[] tvNames = { "Telewizja Abelowa", "Kanał TV-tensor" };
+        string[] newspaperNames = { "Gazeta Kategoryczna", "Dziennik Politechniczny" };
+
+        List<Media> medias = new List<Media>();
+
+        RadioGenerator radioGenerator = new RadioGenerator();
+        TVGenerator TVGenerator = new TVGenerator();
+        NewspaperGenerator newspaperGenerator = new NewspaperGenerator();
+
+        for (int i = 0; i < radioNames.Length; i++)
+            medias.Add(radioGenerator.Create(radioNames[i]));
+        for (int i = 0; i < tvNames.Length; i++)
+            medias.Add(TVGenerator.Create(tvNames[i]));
+        for (int i = 0; i < newspaperNames.Length; i++)
+            medias.Add(newspaperGenerator.Create(newspaperNames[i]));
+
+        NewsGenerator newsGenerator = new NewsGenerator(medias, GetReportableList());
+        while (newsGenerator.HasMore())
+            Console.WriteLine(newsGenerator.GenerateTextNews());
+        while (true)
+        {
+            if (Console.ReadLine() == "report")
+            {
+                if (newsGenerator.GenerateTextNews() == null)
+                    Console.WriteLine("No more news to be generated");
+            }
+        }
     }
 }

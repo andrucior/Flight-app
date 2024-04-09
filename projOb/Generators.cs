@@ -164,4 +164,16 @@ namespace projOb
         public List<CargoPlane> CargoPlanes = new List<CargoPlane>();
         public List<Flight> Flights = new List<Flight>();
     }
+    public class RadioGenerator
+    {
+        public Radio Create(string name) { return new Radio(name); }
+    }
+    public class TVGenerator
+    {
+        public Television Create(string name) { return new Television(name);}
+    }
+    public class NewspaperGenerator
+    {
+        public Newspaper Create(string name) { return new Newspaper(name); }
+    }
 }
