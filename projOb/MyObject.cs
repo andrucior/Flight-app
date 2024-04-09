@@ -11,15 +11,10 @@ namespace projOb
     [Serializable]
     public abstract class MyObject
     {
-        public string? Abr { get; set; }
         public UInt64 ID { get; set; }
-        public MyObject() { ID = 0; Abr = string.Empty; }
+        public MyObject() { ID = 0; }
         [JsonConstructor]
-        public MyObject(string[] values) 
-        { 
-            Abr = values[0];
-            ID = Convert.ToUInt64(values[1]); 
-        }
+        public MyObject(string[] values) { ID = Convert.ToUInt64(values[1]); }
         public MyObject(byte[] values) { ID = BitConverter.ToUInt64(values, 7); }
         public abstract string JsonSerialize();
     }

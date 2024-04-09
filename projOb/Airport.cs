@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace projOb
 {
     [Serializable]
-    public class Airport: MyObject
+    public class Airport: MyObject, IReportable
     {
         public string? Name { get; set; } 
         public string? Code { get; set; }
@@ -37,7 +37,7 @@ namespace projOb
             Longitude = Convert.ToSingle(values[4], CultureInfo.InvariantCulture);
             Latitude = Convert.ToSingle(values[5], CultureInfo.InvariantCulture);
             AMSL = Convert.ToSingle(values[6], CultureInfo.InvariantCulture);
-            ISO = values[6];
+            ISO = values[7];
         }
         public Airport(byte[] values) : base(values)
         {
@@ -52,6 +52,10 @@ namespace projOb
         public override string JsonSerialize()
         {
             return JsonSerializer.Serialize(this);
+        }
+        public string Accept(Media media)
+        {
+            return media.CreateMessage(this);
         }
     }
 }

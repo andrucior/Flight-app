@@ -46,7 +46,7 @@ namespace projOb
 
     }
     [Serializable]
-    public class PassengerPlane: Plane
+    public class PassengerPlane: Plane, IReportable
     {
         public UInt16 FirstClassSize {  get; set; }
         public UInt16 BusinessClassSize { get; set; }
@@ -77,9 +77,13 @@ namespace projOb
         {
             return JsonSerializer.Serialize(this);
         }
+        public string Accept(Media media)
+        {
+            return media.CreateMessage(this);
+        }
     }
     [Serializable]
-    public class CargoPlane: Plane 
+    public class CargoPlane: Plane, IReportable
     {
         public Single MaxLoad {  get; set; }
         public CargoPlane(): base()
@@ -101,5 +105,10 @@ namespace projOb
         {
             return JsonSerializer.Serialize(this);
         }
+        public string Accept(Media media)
+        {
+            return media.CreateMessage(this);
+        }
+        
     }
 }

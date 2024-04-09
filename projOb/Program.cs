@@ -23,6 +23,11 @@ class Project
     private static List<Flight> flights = new List<Flight>();
     private static List<Airport> airports = new List<Airport>();
     private static List<MyObject> myObjects = new List<MyObject>();
+
+    // Wzorce:
+    // - visitor
+    // - iterator
+
     static void Main(string[] args)
     {
         string filePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "test.ftr");
@@ -41,9 +46,30 @@ class Project
         // Etap 3
         // W zaleznosci od uzytego etapu dobrac klucze
         // Dla 1 - "FL" i "AI", dla 2 - "NFL" i "NAI"
-        flights = GetFlightList("FL");
+        // flights = GetFlightList("FL");
         airports = GetAirportList("AI");
-        CreateThreads3rdStage();
+        // CreateThreads3rdStage();
+
+        // Etap 4
+        Radio r = new Radio()
+        {
+            Name = "Max Kolonko"
+        };
+        Television tv = new Television()
+        {
+            Name = "Telewizja republika"
+        };
+        Newspaper newspaper = new Newspaper()
+        {
+            Name = "Gazeta Okręgu Trzech Stanów"
+        };
+        string radioMessage = airports[0].Accept(r);
+        string tvMessage = airports[0].Accept(tv);
+        string newspaperMessage = airports[0].Accept(newspaper);
+        Console.WriteLine(radioMessage);
+        Console.WriteLine(tvMessage);
+        Console.WriteLine(newspaperMessage);
+
 
     }
     static List<Flight> GetFlightList(string key)
@@ -155,6 +181,13 @@ class Project
                 {
                     SnapShot();
                 }
+                if (message == "report")
+                {
+                    /*
+                    report wypisuje na konsolę przegląd wiadomości wygenerowany na podstawie danych
+                    wczytanych z pliku FTR
+                    */
+                }
             }
             return;
         });
@@ -220,7 +253,7 @@ class Project
 
             lock (flightsGUIData)
                 flightsGUIData.UpdateFlights(flightsList);
-            startDate = startDate.AddMinutes(60);
+            startDate = startDate.AddMinutes(10);
             Thread.Sleep(1000);
         }
 
