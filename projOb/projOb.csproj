@@ -16,7 +16,7 @@
       <HintPath>D:\andrz\Downloads\FlightTrackerGUI_dotnet8\net8.0\FlightTrackerGUI.dll</HintPath>
     </Reference>
     <Reference Include="NetworkSourceSimulator">
-      <HintPath>D:\andrz\Downloads\NetworkSourceSimulator.dll</HintPath>
+      <HintPath>D:\andrz\Downloads\IncludesUpdated\NetworkSourceSimulator.dll</HintPath>
     </Reference>
   </ItemGroup>
 

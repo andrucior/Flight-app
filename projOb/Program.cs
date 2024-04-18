@@ -10,7 +10,8 @@ using System.Drawing;
 using System.Globalization;
 using System.Net.WebSockets;
 using Avalonia.Controls.Shapes;
-namespace FlightTrackerGUI;
+using ExCSS;
+using FlightTrackerGUI;
 
 class Project
 {
@@ -26,25 +27,23 @@ class Project
     static void Main(string[] args)
     {
         string filePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "test.ftr");
-        // string jsonPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "backup.json");
+        string jsonPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "backup.json");
+        string networkFilePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "example.ftre");
 
         // Etap 1
         generators = CreateDictionary();
         Read(filePath);
-        // Serialize(jsonPath);
+        Serialize(jsonPath);
 
-        // Etap 2
-        // generators = CreateDictionary2ndStage();
-        // CreateThreads2ndStage(filePath);
-        // Thread.Sleep(1000);
+        // Etap 2 i 4
+        generators = CreateDictionary2ndStage();
+        CreateThreadsConsoleServer(networkFilePath);
+        Thread.Sleep(100);
 
         // Etap 3
-        // flights = GetFlightList();
-        // airports = GetAirportList();
-        // CreateThreads3rdStage();
-
-        // Etap 4
-        Program4thStage();
+        flights = GetFlightList();
+        airports = GetAirportList();
+        CreateThreadsGUI();
 
     }
     static List<Flight> GetFlightList()
@@ -137,11 +136,17 @@ class Project
             }
         }
     }
-    static void CreateThreads2ndStage(string filePath)
+    static void CreateThreadsConsoleServer(string filePath)
     {
         string? message;
+        List<Media> medias = CreateMediaList();
+
         NetworkSourceSimulator.NetworkSourceSimulator nss = new NetworkSourceSimulator.NetworkSourceSimulator(filePath, 0, 0);
-        Thread server = new Thread(nss.Run);
+        List<projOb.Plane> planes = [.. Generator.List.CargoPlanes, .. Generator.List.PassengerPlaneList];
+        string logPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "log.txt");
+
+        Decorator decorator = new Decorator(nss, ref myObjects, ref flights, ref airports, ref planes, ref Generator.List.CrewList, startDate, logPath);
+        Thread server = new Thread(decorator.DataSource.Run);
         Thread console = new Thread(() =>
         {
             while (Project.running)
@@ -156,6 +161,17 @@ class Project
                 if (message == "print")
                 {
                     SnapShot();
+                }
+                if (message == "report")
+                {
+                    NewsGenerator newsGenerator = new NewsGenerator(medias, GetReportableList());
+                    string? output = newsGenerator.GenerateTextNews();
+
+                    while (output != null)
+                    {
+                        Console.WriteLine(output);
+                        output = newsGenerator.GenerateTextNews();
+                    }
                 }
             }
             return;
@@ -173,13 +189,14 @@ class Project
         string jsonPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), $"snapshot_{now.Hour}_{now.Minute}_{now.Second}.json");
         Serialize(jsonPath);
     }
-    static void CreateThreads3rdStage()
+    static void CreateThreadsGUI()
     {
         Thread runner = new Thread(FlightTrackerGUI.Runner.Run);
         Thread updateFlights = new Thread(UpdateFlightsFun);
         Thread GUIdata = new Thread(GUIDataFun);
         runner.IsBackground = true;
         GUIdata.IsBackground = true;
+        updateFlights.IsBackground = true;
         runner.Start();
         updateFlights.Start();
         GUIdata.Start();

@@ -15,7 +15,6 @@ namespace projOb
         private List<Airport> Airports;
         public FlightAdapter(Flight flight, List<Airport> airports, DateTime startDate) 
         {
-            if (flight == null) throw new Exception("Flight cannot be null");
             if (airports.Count == 0) throw new Exception("Airport list empty");
 
             Airports = airports;
