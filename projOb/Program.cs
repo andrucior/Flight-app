@@ -17,9 +17,7 @@ class Project
 {
     volatile private static bool running = true;
     private static FlightsGUIData FlightsGUIData = new FlightsGUIData();
-    private static List<FlightGUI> FlightsList = new List<FlightGUI>();
     private static DateTime StartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0);
-    private static DateTime EndDate = StartDate.AddDays(1);
     private static Dictionary<string, Generator> generators = new Dictionary<string, Generator>();
     private static List<MyObject> MyObjects = new List<MyObject>();
     private static Subscriber? Subscriber;
@@ -34,29 +32,22 @@ class Project
         Read(filePath);
         Serialize(jsonPath);
 
-        // Etap 2 i 4
+        // Etap 2 - 5
         CreateThreadsConsoleServer(networkFilePath);
         generators = CreateDictionary2ndStage();
         CreateThreadsGUI();       
 
     }
-    static List<Flight> GetFlightList()
-    {
-        return Generator.List.Flights;
-    }
-    static List<Airport> GetAirportList()
-    {
-        return Generator.List.Airports;
-    }
     static List<IReportable> GetReportableList()
     {
-        List<IReportable> reportables = new List<IReportable>();
-        reportables.AddRange(Generator.List.Airports);
-        reportables.AddRange(Generator.List.CargoPlanes);
-        reportables.AddRange(Generator.List.PassengerPlaneList);
+        List<IReportable> reportables =
+        [
+            .. Generator.List.Airports,
+            .. Generator.List.CargoPlanes,
+            .. Generator.List.PassengerPlaneList,
+        ];
         return reportables;
     }
-
 
     static Dictionary<string, Generator> CreateDictionary()
     {
@@ -137,12 +128,11 @@ class Project
     {
         string? message;
         List<Media> medias = CreateMediaList();
-
         NetworkSourceSimulator.NetworkSourceSimulator nss = new NetworkSourceSimulator.NetworkSourceSimulator(filePath, 0, 1000);
         List<projOb.Plane> planes = [.. Generator.List.CargoPlanes, .. Generator.List.PassengerPlaneList];
         string logPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "log.txt");
-
         Subscriber = new Subscriber(nss, ref MyObjects, StartDate);
+        
         Thread server = new Thread(Subscriber.DataSource.Run);
         Thread console = new Thread(() =>
         {
@@ -208,14 +198,13 @@ class Project
         }
     }
     static void UpdateFlightsFun()
-    {
-        List<FlightAdapter> toRemove = new List<FlightAdapter>();   
+    { 
         while (Project.running)
         {
-            lock (FlightsList)
+            lock (Generator.List.FlightGUIs)
             {
-                FlightsList.Clear();
-                FlightsGUIData.UpdateFlights(FlightsList);
+                Generator.List.FlightGUIs.Clear();
+                FlightsGUIData.UpdateFlights(Generator.List.FlightGUIs);
             }
 
             foreach (var flight in Generator.List.Flights)
@@ -223,21 +212,20 @@ class Project
                 DateTime takeOff = Convert.ToDateTime(flight.TakeOff);
                 DateTime landing = Convert.ToDateTime(flight.Landing);
 
-                if (DateTime.Compare(takeOff, StartDate) <= 0)// && DateTime.Compare(landing, StartDate) >= 0)
+                if (DateTime.Compare(takeOff, StartDate) <= 0)
                 {
                     Airport target = FlightAdapter.FindAirports(flight).destination;
                     FlightAdapterGenerator flightAdapterGenerator = new FlightAdapterGenerator();
                     FlightGUI flightGUI = flightAdapterGenerator.Create(flight, StartDate, 
                         new WorldPosition(flight.Latitude, flight.Longitude), new WorldPosition(target.Latitude, target.Longitude));
 
-                    lock (FlightsList)
-                        FlightsList.Add(flightGUI);
+                    lock (Generator.List.FlightGUIs)
+                        Generator.List.FlightGUIs.Add(flightGUI);
                 }
-
             }
             
-            lock (FlightsGUIData)
-                FlightsGUIData.UpdateFlights(FlightsList);
+            lock (Generator.List.FlightGUIs)
+                FlightsGUIData.UpdateFlights(Generator.List.FlightGUIs);
             StartDate = StartDate.AddMinutes(30);
             Subscriber.StartDate = StartDate;
             Thread.Sleep(1000);
@@ -264,32 +252,5 @@ class Project
             medias.Add(newspaperGenerator.Create(newspaperNames[i]));
         
         return medias;
-    }
-    static void Program4thStage()
-    {
-        List<Media> medias = CreateMediaList();
-        
-        while (Project.running)
-        {
-            string? message = Console.ReadLine();
-
-            if (message == "report")
-            {
-                NewsGenerator newsGenerator = new NewsGenerator(medias, GetReportableList());
-                string? output = newsGenerator.GenerateTextNews();
-                
-                while (output != null)
-                {
-                    Console.WriteLine(output);
-                    output = newsGenerator.GenerateTextNews();
-                }
-            }
-            
-            if (message == "exit")
-                Project.running = false;
-            
-            if (message == null)
-                throw new Exception("Error occured while reading from console");
-        }
     }
 }

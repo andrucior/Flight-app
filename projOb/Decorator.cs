@@ -107,9 +107,7 @@ namespace projOb
                 if (flight != null)
                 {
                     Serialize(flight, "Position update. State before:");
-                    flight.Latitude = args.Latitude;
-                    flight.Longitude = args.Longitude;
-                    flight.AMSL = args.AMSL;
+                    Generator.List.FlightGUIs.Add(new FlightGUIDecorator(ref flight, args, StartDate).Update());
                     Serialize(flight, "Position update. State after:");
                 }
             }

@@ -172,6 +172,7 @@ namespace projOb
         public List<Airport> Airports = new List<Airport>();
         public List<CargoPlane> CargoPlanes = new List<CargoPlane>();
         public List<Flight> Flights = new List<Flight>();
+        public List<FlightGUI> FlightGUIs = new List<FlightGUI>();
     }
     public class RadioGenerator
     {
