@@ -142,8 +142,7 @@ class Project
         List<projOb.Plane> planes = [.. Generator.List.CargoPlanes, .. Generator.List.PassengerPlaneList];
         string logPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "log.txt");
 
-        Subscriber = new Subscriber(nss, ref MyObjects, ref Generator.List.Flights, ref Generator.List.Airports, ref planes, 
-            ref Generator.List.CrewList, StartDate, ref FlightsList, ref FlightsGUIData);
+        Subscriber = new Subscriber(nss, ref MyObjects, StartDate);
         Thread server = new Thread(Subscriber.DataSource.Run);
         Thread console = new Thread(() =>
         {
@@ -224,40 +223,22 @@ class Project
                 DateTime takeOff = Convert.ToDateTime(flight.TakeOff);
                 DateTime landing = Convert.ToDateTime(flight.Landing);
 
-                if (DateTime.Compare(takeOff, StartDate) <= 0 && DateTime.Compare(landing, StartDate) >= 0)
+                if (DateTime.Compare(takeOff, StartDate) <= 0)// && DateTime.Compare(landing, StartDate) >= 0)
                 {
+                    Airport target = FlightAdapter.FindAirports(flight).destination;
                     FlightAdapterGenerator flightAdapterGenerator = new FlightAdapterGenerator();
-                    FlightGUI flightGUI = flightAdapterGenerator.Create(flight, Generator.List.Airports, StartDate);
+                    FlightGUI flightGUI = flightAdapterGenerator.Create(flight, StartDate, 
+                        new WorldPosition(flight.Latitude, flight.Longitude), new WorldPosition(target.Latitude, target.Longitude));
 
                     lock (FlightsList)
                         FlightsList.Add(flightGUI);
                 }
 
             }
-            lock (Subscriber.NotYetList)
-            {
-                foreach (var flight in Subscriber.NotYetList)
-                {
-                    DateTime takeOff = Convert.ToDateTime(flight.Flight.TakeOff);
-
-                    if (DateTime.Compare(takeOff, StartDate) <= 0)
-                    {
-                        FlightAdapterGenerator flightAdapterGenerator = new FlightAdapterGenerator();
-                        FlightGUI flightGUI = flightAdapterGenerator.Create(flight.Flight, Generator.List.Airports, StartDate);
-
-                        lock (FlightsList)
-                            FlightsList.Add(flightGUI);
-                        
-                        toRemove.Add(flight);
-                    }
-                }
-            }
-            foreach (var flight in toRemove)
-                Subscriber.NotYetList.Remove(flight);
-
+            
             lock (FlightsGUIData)
                 FlightsGUIData.UpdateFlights(FlightsList);
-            StartDate = StartDate.AddMinutes(10);
+            StartDate = StartDate.AddMinutes(30);
             Subscriber.StartDate = StartDate;
             Thread.Sleep(1000);
         }

@@ -1,6 +1,7 @@
 ﻿using Mapsui.Projections;
 using Mapsui.Utilities;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,58 +13,60 @@ namespace projOb
     public class FlightAdapter : FlightGUI
     {
         public Flight Flight;
-        private List<Airport> Airports;
-        public FlightAdapter(Flight flight, List<Airport> airports, DateTime startDate) 
-        {
-            if (airports.Count == 0) throw new Exception("Airport list empty");
-
-            Airports = airports;
+        private static List<Airport> Airports = Generator.List.Airports;
+        private WorldPosition Origin;
+        private WorldPosition Target;
+        public FlightAdapter(Flight flight, DateTime startDate, WorldPosition start, WorldPosition target)
+        { 
             Flight = flight;
             ID = flight.ID;
-            (Airport? origin, Airport? target) = FindAirports();
-            MapCoordRotation = CalculateRotation(origin, target);
-            double ratio = CalculateRatio(flight, startDate);
-            WorldPosition = CalculatePosition(origin, target, ratio);
+            Origin = new WorldPosition(start.Latitude, start.Longitude);
+            Target = new WorldPosition(target.Latitude, target.Longitude);
+
+            MapCoordRotation = CalculateRotation();
+            double ratio = CalculateRatio(startDate);
+            WorldPosition = CalculatePosition(ratio);
         }
-        public static double CalculateRotation (Airport origin, Airport target)
+        public double CalculateRotation()
         {
-            (double x_start, double y_start) = SphericalMercator.FromLonLat(origin.Longitude, origin.Latitude);
-            (double x_end, double y_end) = SphericalMercator.FromLonLat(target.Longitude, target.Latitude);
+            (double x_start, double y_start) = SphericalMercator.FromLonLat(Origin.Longitude, Origin.Latitude);
+            (double x_end, double y_end) = SphericalMercator.FromLonLat(Target.Longitude, Target.Latitude);
             
             double dx = x_end - x_start;
             double dy = y_end - y_start;
             
             return Math.Atan2(dx, dy);
         }
-        public static WorldPosition CalculatePosition (Airport origin, Airport target, double ratio)
+        
+        public WorldPosition CalculatePosition(double ratio)
         {
-            if (Math.Abs(ratio - 1) < 0.05 || ratio > 1) 
-                return new WorldPosition(target.Latitude, target.Longitude);
+            if (ratio > 1)
+                return new WorldPosition(Target.Latitude, Target.Longitude);
 
-            
-            (double x_start, double y_start) = SphericalMercator.FromLonLat(origin.Longitude, origin.Latitude);
-            (double x_end, double y_end) = SphericalMercator.FromLonLat(target.Longitude, target.Latitude);
+
+            (double x_start, double y_start) = SphericalMercator.FromLonLat(Origin.Longitude, Origin.Latitude);
+            (double x_end, double y_end) = SphericalMercator.FromLonLat(Target.Longitude, Target.Latitude);
 
             double x = x_start + ratio * (x_end - x_start);
             double y = (y_end - y_start) / (x_end - x_start) * x + (y_start - (y_start - y_end) / (x_start - x_end) * x_start);
 
             (double lon, double lat) = SphericalMercator.ToLonLat(x, y);
-            
+
             return new WorldPosition(lat, lon);
         }
-        public static double CalculateRatio(Flight flight, DateTime startDate)
+        public double CalculateRatio(DateTime startDate)
         {
-            DateTime timeOfTakeOff = Convert.ToDateTime(flight.TakeOff);
+            DateTime timeOfTakeOff = Convert.ToDateTime(Flight.TakeOff);
             TimeSpan diff = startDate - timeOfTakeOff;
-            TimeSpan travelTime = Convert.ToDateTime(flight.Landing) - Convert.ToDateTime(flight.TakeOff);
+            TimeSpan travelTime = Convert.ToDateTime(Flight.Landing) - Convert.ToDateTime(Flight.TakeOff);
             double ratio = diff.TotalSeconds / travelTime.TotalSeconds;
             
             return ratio;
         }
-        public (Airport origin, Airport destination) FindAirports()
+        public static (Airport origin, Airport destination) FindAirports(Flight flight)
         {
-            Airport? origin = Airports.Find((Airport airp) => (airp.ID == Flight.OriginID));
-            Airport? target = Airports.Find((Airport airp) => (airp.ID == Flight.TargetID));
+            Airport? origin = Airports.Find((Airport airp) => (airp.ID == flight.OriginID));
+            Airport? target = Airports.Find((Airport airp) => (airp.ID == flight.TargetID));
 
             if (origin == null || target == null) throw new Exception("Aiport not found");
 

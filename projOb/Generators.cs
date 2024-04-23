@@ -152,9 +152,15 @@ namespace projOb
     }
     public class FlightAdapterGenerator
     {
-        public FlightAdapter Create(Flight flight, List<Airport> airports,DateTime dateTime) 
+        public FlightAdapter Create(Flight flight, DateTime dateTime) 
         {
-            return new FlightAdapter(flight, airports, dateTime); 
+            (Airport origin, Airport target) = FlightAdapter.FindAirports(flight);
+            return new FlightAdapter(flight, dateTime, new WorldPosition(origin.Latitude, origin.Longitude), 
+              new WorldPosition(target.Latitude, target.Longitude)); 
+        }
+        public FlightAdapter Create(Flight flight, DateTime startDate, WorldPosition start, WorldPosition target)
+        {
+            return new FlightAdapter(flight, startDate, start, target);
         }
     }
     public class Lists
