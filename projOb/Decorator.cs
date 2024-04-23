@@ -22,7 +22,7 @@ namespace projOb
         private List<Crew> Crew;
         public DateTime StartDate;
         private string Path;
-        private int i = 0;
+        static private int i = 0;
         public Subscriber(NetworkSourceSimulator.NetworkSourceSimulator dataSource, ref List<MyObject> objects, 
             ref List<Flight> flights, ref List<Airport> airports, ref List<Plane> planes, ref List<Crew> crew, 
             DateTime date, ref List<FlightGUI> flightList, ref FlightsGUIData flightsGUIData) 
@@ -39,7 +39,6 @@ namespace projOb
             NotYetList = new List<FlightAdapter>();
             string now = DateTime.Now.ToString("MM.dd");
             string format = ".txt";
-            int i = 0;
             do
             {
                 Path = now + $" ({i++})" + format;
