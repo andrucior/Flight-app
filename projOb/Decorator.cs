@@ -4,23 +4,28 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Avalonia.Data;
 using NetworkSourceSimulator;
 
 namespace projOb
 {
-    public class Decorator
+    public class Subscriber
     {
         public NetworkSourceSimulator.NetworkSourceSimulator DataSource { get; set; }
-        private List<FlightGUI> flightsList = new List<FlightGUI>();
+        public List<FlightAdapter> NotYetList;
+        private FlightsGUIData FlightsGUIData;
+        private List<FlightGUI> FlightList;
         private List<MyObject> Objects;
         private List<Flight> Flights;
         private List<Airport> Airports;
         private List<Plane> Planes;
         private List<Crew> Crew;
-        private DateTime StartDate;
+        public DateTime StartDate;
         private string Path;
-        public Decorator(NetworkSourceSimulator.NetworkSourceSimulator dataSource, ref List<MyObject> objects, 
-            ref List<Flight> flights, ref List<Airport> airports, ref List<Plane> planes, ref List<Crew> crew, DateTime date) 
+        private int i = 0;
+        public Subscriber(NetworkSourceSimulator.NetworkSourceSimulator dataSource, ref List<MyObject> objects, 
+            ref List<Flight> flights, ref List<Airport> airports, ref List<Plane> planes, ref List<Crew> crew, 
+            DateTime date, ref List<FlightGUI> flightList, ref FlightsGUIData flightsGUIData) 
         { 
             DataSource = dataSource;
             Objects = objects;
@@ -29,6 +34,9 @@ namespace projOb
             Planes = planes;
             Crew = crew;
             StartDate = date;
+            FlightList = flightList;
+            FlightsGUIData = flightsGUIData;
+            NotYetList = new List<FlightAdapter>();
             string now = DateTime.Now.ToString("MM.dd");
             string format = ".txt";
             int i = 0;
@@ -36,21 +44,16 @@ namespace projOb
             {
                 Path = now + $" ({i++})" + format;
             } while (File.Exists(Path));
-               
-            
+
             DataSource.OnIDUpdate += IDUpdate;
             DataSource.OnPositionUpdate += PositionUpdate;
             DataSource.OnContactInfoUpdate += ContactInfoUpdate;
+
         }
         private MyObject? FindID(UInt64 id)
         {
             MyObject? o = Objects.Find((obj) => obj.ID == id);
             return o;
-        }
-        private Airport? FindAirport(UInt64 id)
-        {
-            Airport? airport = Airports.Find((air) => air.ID == id);
-            return airport;
         }
         private Plane? FindPlane(UInt64 id)
         {
@@ -69,7 +72,6 @@ namespace projOb
         }
         private Flight? FindFlightFromPlaneID(UInt64 id)
         {
-            Plane? plane = FindPlane(id);
             Flight? flight = Flights.Find((flight) => flight.PlaneID == id);
             return flight;
         }
@@ -78,63 +80,91 @@ namespace projOb
             MyObject? o = FindID(args.ObjectID);
             if (o != null) 
             {
-                if (o.ID != args.ObjectID)
+                if (o.ID != args.NewObjectID)
                 {
-                    Serialize(o, "ID update");
+                    Serialize(o, "ID update. State before:");
                     o.ID = args.NewObjectID;
-                    Serialize(o, "ID update");
+                    Serialize(o, "ID update. State after:");
                 }
                 else
-                {
-                    using StreamWriter sw = new StreamWriter(Path, true);
-                    sw.WriteLine("Couldn't update ID: invalid arguments");
-                }
+                    WriteErrorLog("Couldn't update ID. ");
+                
             }
             
         }
-        private void PositionUpdate(object sender, PositionUpdateArgs args) 
+        private void PositionUpdate(object sender, PositionUpdateArgs args)
         {
+            string error = "Couldn't update position. ";
+
+            if (args.Latitude < -180 || args.Latitude > 180 || args.Longitude < -180 || args.Longitude > 180)
+            {
+                WriteErrorLog(error);
+                return;
+            }
+            
             Plane? plane = FindPlane(args.ObjectID);
             Flight? flight = FindFlight(args.ObjectID);
-            Airport? airport = FindAirport(args.ObjectID);
 
-            if (flight != null)
+            if (plane != null || flight != null)
             {
-                Serialize(flight, "Position update");
-                flightsList.Remove(new FlightAdapterGenerator().Create(flight, Airports, StartDate));
-                FlightAdapter? flightGUI = new FlightGUIDecorator(ref flight, args, Airports, StartDate).Update();
-                flightsList.Add(flightGUI);
-                Serialize(flight, "Position update");
-                
-            }
-            if (airport != null)
-            {
-                Serialize(airport, "Position update");
-                airport.ID = args.ObjectID;
-                airport.Longitude = args.Longitude;
-                airport.AMSL = args.AMSL;
-                airport.Latitude = args.Latitude;
-                Serialize(airport, "Position update");
+                if (plane != null)
+                {
+                    Serialize(plane, "Position update. State before:");
+                    plane.ID = args.ObjectID;
+                    flight = FindFlightFromPlaneID(plane.ID);
+                    
+                    if (flight == null)
+                    {
+                        WriteErrorLog(error);
+                        return;
+                    }
 
+                    Serialize(plane, "Position update. State After:");
+                }
+
+                lock (FlightList)
+                    FlightList.Remove(new FlightAdapterGenerator().Create(flight, Airports, StartDate));
+
+                if (flight != null)
+                {
+                    Serialize(flight, "Position update. State before:");
+                    flight.Latitude = args.Latitude;
+                    flight.Longitude = args.Longitude;
+                    flight.AMSL = args.AMSL;
+                    Serialize(flight, "Position update. State after:");
+                }
+
+                lock (FlightList)
+                    AddToFlightGUIList(flight, args);
             }
-            if (plane != null)
+            else
+                WriteErrorLog(error);
+        }
+        private void AddToFlightGUIList(Flight flight, PositionUpdateArgs args)
+        {
+            FlightAdapter? flightGUI = new FlightGUIDecorator(ref flight, args, Airports, StartDate).Update();
+            DateTime takeOff = Convert.ToDateTime(flightGUI.Flight.TakeOff);
+            DateTime landing = Convert.ToDateTime(flightGUI.Flight.Landing);
+
+            if (DateTime.Compare(takeOff, StartDate) <= 0)
             {
-                Serialize(plane, "Position update");
-                plane.ID = args.ObjectID;
-                // Do poprawy pozycja - dekorator??
-                Flight? fl = FindFlightFromPlaneID(plane.ID);
-                flightsList.Remove(new FlightAdapterGenerator().Create(fl, Airports, StartDate));
-                FlightAdapter? flightGUI = new FlightGUIDecorator(ref fl, args, Airports, StartDate).Update();
-                flightsList.Add(flightGUI);
-                Serialize(plane, "Posiotion update");
-                
-            }            
-            
+                FlightList.Add(flightGUI);
+                FlightsGUIData.UpdateFlights(FlightList);
+            }
+            else
+                lock (NotYetList)
+                    NotYetList.Add(flightGUI);
+        }
+        private void WriteErrorLog(string message)
+        {
+            using StreamWriter sw = new StreamWriter(Path, true);
+            sw.WriteLine(message +"Invalid arguments");
+            return;
         }
         private void ContactInfoUpdate(object sender, ContactInfoUpdateArgs args)
         {
             Crew? crew = FindCrew(args.ObjectID);
-            if (crew != null) 
+            if (crew != null)
             {
                 if (crew.Phone != args.PhoneNumber || crew.Email != args.EmailAddress)
                 {
@@ -143,11 +173,8 @@ namespace projOb
                     crew.Email = args.EmailAddress;
                     Serialize(crew, "Contact info update");
                 }
-                else 
-                {
-                    using StreamWriter sw = new StreamWriter(Path, true);
-                    sw.WriteLine("Couldn't update contact info: invalid arguments");
-                }
+                else
+                    WriteErrorLog("Couldn't update contact info");
             }
         }
         public void Serialize(MyObject myObject, string message)
@@ -155,9 +182,11 @@ namespace projOb
             using StreamWriter sw = new StreamWriter(Path, true);
             string line;
             line = $"Log {DateTime.Now} " + message;
+            sw.WriteLine();
             sw.WriteLine(line);
             line = myObject.JsonSerialize();
             sw.WriteLine(line);
+            sw.WriteLine();
         }
     }
 
@@ -180,7 +209,8 @@ namespace projOb
             Flight.Longitude = PositionUpdateArgs.Longitude;
             Flight.AMSL = PositionUpdateArgs.AMSL;
 
-            return new FlightAdapterGenerator().Create(Flight, Airports, StartDate);
+            FlightAdapter flightAdapter =  new FlightAdapterGenerator().Create(Flight, Airports, StartDate);
+            return flightAdapter;
         }
 
     }

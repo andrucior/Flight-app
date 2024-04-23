@@ -152,7 +152,7 @@ namespace projOb
     }
     public class FlightAdapterGenerator
     {
-        public FlightAdapter Create(Flight? flight, List<Airport> airports,DateTime dateTime) 
+        public FlightAdapter Create(Flight flight, List<Airport> airports,DateTime dateTime) 
         {
             return new FlightAdapter(flight, airports, dateTime); 
         }

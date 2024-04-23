@@ -11,7 +11,7 @@ namespace projOb
 {
     public class FlightAdapter : FlightGUI
     {
-        private Flight Flight;
+        public Flight Flight;
         private List<Airport> Airports;
         public FlightAdapter(Flight flight, List<Airport> airports, DateTime startDate) 
         {
@@ -37,9 +37,10 @@ namespace projOb
         }
         public static WorldPosition CalculatePosition (Airport origin, Airport target, double ratio)
         {
-            if (Math.Abs(ratio - 1) < double.Epsilon * 10e300 * 10e20) 
+            if (Math.Abs(ratio - 1) < 0.05 || ratio > 1) 
                 return new WorldPosition(target.Latitude, target.Longitude);
 
+            
             (double x_start, double y_start) = SphericalMercator.FromLonLat(origin.Longitude, origin.Latitude);
             (double x_end, double y_end) = SphericalMercator.FromLonLat(target.Longitude, target.Latitude);
 

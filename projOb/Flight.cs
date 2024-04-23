@@ -44,6 +44,9 @@ namespace projOb
             TargetID = Convert.ToUInt64(values[3]);
             TakeOff = values[4];
             Landing = values[5];
+            
+            if (Convert.ToDateTime(TakeOff) > Convert.ToDateTime(Landing)) throw new ArgumentException();
+
             Longitude = Convert.ToSingle(values[6], CultureInfo.InvariantCulture);
             Latitude = Convert.ToSingle(values[7], CultureInfo.InvariantCulture);
             AMSL = Convert.ToSingle(values[8], CultureInfo.InvariantCulture);

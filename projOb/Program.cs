@@ -16,14 +16,13 @@ using FlightTrackerGUI;
 class Project
 {
     volatile private static bool running = true;
-    private static FlightsGUIData flightsGUIData = new FlightsGUIData();
-    private static List<FlightGUI> flightsList = new List<FlightGUI>();
-    private static DateTime startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0);
-    private static DateTime endDate = startDate.AddDays(1);
+    private static FlightsGUIData FlightsGUIData = new FlightsGUIData();
+    private static List<FlightGUI> FlightsList = new List<FlightGUI>();
+    private static DateTime StartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0);
+    private static DateTime EndDate = StartDate.AddDays(1);
     private static Dictionary<string, Generator> generators = new Dictionary<string, Generator>();
-    private static List<Flight> flights = new List<Flight>();
-    private static List<Airport> airports = new List<Airport>();
-    private static List<MyObject> myObjects = new List<MyObject>();
+    private static List<MyObject> MyObjects = new List<MyObject>();
+    private static Subscriber? Subscriber;
     static void Main(string[] args)
     {
         string filePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "test.ftr");
@@ -36,14 +35,9 @@ class Project
         Serialize(jsonPath);
 
         // Etap 2 i 4
-        generators = CreateDictionary2ndStage();
         CreateThreadsConsoleServer(networkFilePath);
-        Thread.Sleep(100);
-
-        // Etap 3
-        flights = GetFlightList();
-        airports = GetAirportList();
-        CreateThreadsGUI();
+        generators = CreateDictionary2ndStage();
+        CreateThreadsGUI();       
 
     }
     static List<Flight> GetFlightList()
@@ -93,9 +87,10 @@ class Project
     {
         string? line;
         int lineNr = 1;
-
+        
         using FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
         using StreamReader sr = new StreamReader(fileStream);
+        string errorPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "errors.txt");
 
         while ((line = sr.ReadLine()) != null)
         {
@@ -107,9 +102,9 @@ class Project
             try
             {
                 var obj = tuple.Create(parms[0..]);
-                lock (myObjects)
+                lock (MyObjects)
                 {
-                    myObjects.Add(obj);
+                    MyObjects.Add(obj);
                 }
             }
             catch (InvalidNumberOfArgsException ex)
@@ -118,8 +113,10 @@ class Project
             }
             catch (ArgumentException ex)
             {
-                throw new Exception($"Invalid name in line {lineNr}. Make sure it is correct", ex);
+                using StreamWriter sw = new StreamWriter(errorPath);
+                sw.WriteLine($"Invalid arguments in line {lineNr}. Make sure it is correct", ex);
             }
+            
             lineNr++;
         }
     }
@@ -127,9 +124,9 @@ class Project
     {
         using StreamWriter jsStream = new StreamWriter(path);
         string json;
-        lock (myObjects)
+        lock (MyObjects)
         {
-            foreach (var obj in myObjects)
+            foreach (var obj in MyObjects)
             {
                 json = obj.JsonSerialize();
                 jsStream.WriteLine(json);
@@ -141,12 +138,13 @@ class Project
         string? message;
         List<Media> medias = CreateMediaList();
 
-        NetworkSourceSimulator.NetworkSourceSimulator nss = new NetworkSourceSimulator.NetworkSourceSimulator(filePath, 0, 0);
+        NetworkSourceSimulator.NetworkSourceSimulator nss = new NetworkSourceSimulator.NetworkSourceSimulator(filePath, 0, 1000);
         List<projOb.Plane> planes = [.. Generator.List.CargoPlanes, .. Generator.List.PassengerPlaneList];
         string logPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "log.txt");
 
-        Decorator decorator = new Decorator(nss, ref myObjects, ref flights, ref airports, ref planes, ref Generator.List.CrewList, startDate);
-        Thread server = new Thread(decorator.DataSource.Run);
+        Subscriber = new Subscriber(nss, ref MyObjects, ref Generator.List.Flights, ref Generator.List.Airports, ref planes, 
+            ref Generator.List.CrewList, StartDate, ref FlightsList, ref FlightsGUIData);
+        Thread server = new Thread(Subscriber.DataSource.Run);
         Thread console = new Thread(() =>
         {
             while (Project.running)
@@ -177,7 +175,7 @@ class Project
             return;
         });
 
-        DataReader dr = new DataReaderGenerator().Create(nss, generators, myObjects);
+        DataReader dr = new DataReaderGenerator().Create(nss, generators, MyObjects);
         nss.OnNewDataReady += dr.ReadData;
         console.Start();
         server.Start();
@@ -203,43 +201,64 @@ class Project
     }
     static void GUIDataFun()
     {
-        while (startDate <= endDate)
+        while (Project.running)
         {
-            lock (flightsGUIData)
-                FlightTrackerGUI.Runner.UpdateGUI(flightsGUIData);
+            lock (FlightsGUIData)
+                FlightTrackerGUI.Runner.UpdateGUI(FlightsGUIData);
             Thread.Sleep(1000);
         }
     }
     static void UpdateFlightsFun()
     {
-        while (startDate <= endDate)
+        List<FlightAdapter> toRemove = new List<FlightAdapter>();   
+        while (Project.running)
         {
-            lock (flightsList)
+            lock (FlightsList)
             {
-                flightsList.Clear();
-                flightsGUIData.UpdateFlights(flightsList);
+                FlightsList.Clear();
+                FlightsGUIData.UpdateFlights(FlightsList);
             }
 
-            foreach (var flight in flights)
+            foreach (var flight in Generator.List.Flights)
             {
                 DateTime takeOff = Convert.ToDateTime(flight.TakeOff);
                 DateTime landing = Convert.ToDateTime(flight.Landing);
 
-                if (DateTime.Compare(takeOff, landing) < 0)
+                if (DateTime.Compare(takeOff, StartDate) <= 0 && DateTime.Compare(landing, StartDate) >= 0)
                 {
-                    if (DateTime.Compare(takeOff, startDate) <= 0 && DateTime.Compare(landing, startDate) >= 0)
+                    FlightAdapterGenerator flightAdapterGenerator = new FlightAdapterGenerator();
+                    FlightGUI flightGUI = flightAdapterGenerator.Create(flight, Generator.List.Airports, StartDate);
+
+                    lock (FlightsList)
+                        FlightsList.Add(flightGUI);
+                }
+
+            }
+            lock (Subscriber.NotYetList)
+            {
+                foreach (var flight in Subscriber.NotYetList)
+                {
+                    DateTime takeOff = Convert.ToDateTime(flight.Flight.TakeOff);
+
+                    if (DateTime.Compare(takeOff, StartDate) <= 0)
                     {
                         FlightAdapterGenerator flightAdapterGenerator = new FlightAdapterGenerator();
-                        FlightGUI flightGUI = flightAdapterGenerator.Create(flight, airports, startDate);
-                        lock (flightsList)
-                            flightsList.Add(flightGUI);
+                        FlightGUI flightGUI = flightAdapterGenerator.Create(flight.Flight, Generator.List.Airports, StartDate);
+
+                        lock (FlightsList)
+                            FlightsList.Add(flightGUI);
+                        
+                        toRemove.Add(flight);
                     }
                 }
             }
+            foreach (var flight in toRemove)
+                Subscriber.NotYetList.Remove(flight);
 
-            lock (flightsGUIData)
-                flightsGUIData.UpdateFlights(flightsList);
-            startDate = startDate.AddMinutes(10);
+            lock (FlightsGUIData)
+                FlightsGUIData.UpdateFlights(FlightsList);
+            StartDate = StartDate.AddMinutes(10);
+            Subscriber.StartDate = StartDate;
             Thread.Sleep(1000);
         }
 
