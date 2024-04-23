@@ -145,7 +145,7 @@ class Project
         List<projOb.Plane> planes = [.. Generator.List.CargoPlanes, .. Generator.List.PassengerPlaneList];
         string logPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "log.txt");
 
-        Decorator decorator = new Decorator(nss, ref myObjects, ref flights, ref airports, ref planes, ref Generator.List.CrewList, startDate, logPath);
+        Decorator decorator = new Decorator(nss, ref myObjects, ref flights, ref airports, ref planes, ref Generator.List.CrewList, startDate);
         Thread server = new Thread(decorator.DataSource.Run);
         Thread console = new Thread(() =>
         {
