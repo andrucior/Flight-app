@@ -20,4 +20,13 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="example.ftre">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="test.ftr">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -8,7 +8,7 @@ namespace projOb
 {
     public abstract class Generator
     {
-        static public Lists List = new Lists();
+        public static Lists List = new Lists();
         public abstract MyObject Create(string[] values);
         public abstract MyObject CreateByte(byte[] values);
     }
