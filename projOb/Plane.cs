@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace projOb
 {
     [Serializable]
-    public abstract class Plane: MyObject
+    public class Plane: MyObject
     {
         public string? Serial { get; set; }
         public string? ISO { get; set; }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Avalonia.Controls.Shapes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -186,4 +187,25 @@ namespace projOb
     {
         public Newspaper Create(string name) { return new Newspaper(name); }
     }
+    public class CommandParserGenerator
+    {
+        public virtual CommandParser Create(string line) {  return new CommandParser(line); }
+    }
+    public class DisplayParserGenerator: CommandParserGenerator
+    {
+        public override DisplayParser Create(string line) { return new DisplayParser(line); }
+    }
+    public class UpdateParserGenerator : CommandParserGenerator
+    {
+        public override UpdateParser Create(string line) { return new UpdateParser(line); }
+    }
+    public class DeleteParserGenerator : CommandParserGenerator
+    {
+        public override DeleteParser Create(string line) { return new DeleteParser(line); }
+    }
+    public class AddParserGenerator : CommandParserGenerator
+    {
+        public override AddParser Create(string line) { return new AddParser(line); }
+    }
+
 }

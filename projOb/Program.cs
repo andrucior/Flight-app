@@ -160,6 +160,13 @@ class Project
                         output = newsGenerator.GenerateTextNews();
                     }
                 }
+                else
+                {
+                    Display d = new Display(message);
+                    // CommandParser parser = new CommandParser(message);
+                    
+
+                }
             }
             return;
         });
