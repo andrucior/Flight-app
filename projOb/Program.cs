@@ -18,8 +18,8 @@ class Project
     volatile private static bool running = true;
     private static FlightsGUIData FlightsGUIData = new FlightsGUIData();
     private static DateTime StartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0);
-    private static Dictionary<string, Generator> generators = new Dictionary<string, Generator>();
-    private static List<MyObject> MyObjects = new List<MyObject>();
+    public static Dictionary<string, Generator> generators = new Dictionary<string, Generator>();
+    public static List<MyObject> MyObjects = new List<MyObject>();
     private static Subscriber? Subscriber;
     static void Main(string[] args)
     {
@@ -92,7 +92,7 @@ class Project
 
             try
             {
-                var obj = tuple.Create(parms[0..]);
+                var obj = tuple.Create(parms[1..]);
                 lock (MyObjects)
                 {
                     MyObjects.Add(obj);
@@ -104,9 +104,10 @@ class Project
             }
             catch (ArgumentException ex)
             {
-                using StreamWriter sw = new StreamWriter(errorPath);
+                using StreamWriter sw = new StreamWriter(errorPath, true);
                 sw.WriteLine($"Invalid arguments in line {lineNr}. Make sure it is correct", ex);
             }
+            
             
             lineNr++;
         }
@@ -162,10 +163,9 @@ class Project
                 }
                 else
                 {
-                    Display d = new Display(message);
-                    // CommandParser parser = new CommandParser(message);
-                    
-
+                    var messageParser = new CommandParser(message);
+                    var command = Command.CommandGenerators[messageParser.CommandName].Create(message);
+                    command.Execute();
                 }
             }
             return;

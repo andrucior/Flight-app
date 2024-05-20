@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace projOb
 {
@@ -24,11 +25,11 @@ namespace projOb
         [JsonConstructor]
         public Cargo(string[] values): base(values)
         {
-            if (values.Length < 4) throw new InvalidNumberOfArgsException();
+            if (values.Length < 3) throw new InvalidNumberOfArgsException();
 
-            Weight = Convert.ToSingle(values[2], CultureInfo.InvariantCulture);
-            Code = values[3];
-            Description = values[4];
+            Weight = Convert.ToSingle(values[1], CultureInfo.InvariantCulture);
+            Code = values[2];
+            Description = values[3];
         }
         public Cargo(byte[] values) : base(values)
         {
@@ -40,6 +41,18 @@ namespace projOb
         public override string JsonSerialize()
         {
             return JsonSerializer.Serialize(this);
+        }
+        public override void Delete()
+        {
+            base.Delete();
+            Generator.List.CargoList.Remove(this);
+        }
+        public override void CreateFieldStrings()
+        {
+            base.CreateFieldStrings();
+            FieldStrings.Add("weight", Weight.ToString());
+            FieldStrings.Add("code", Code);
+            FieldStrings.Add("description", Description);
         }
     }
 }

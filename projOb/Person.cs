@@ -27,12 +27,12 @@ namespace projOb
         [JsonConstructor]
         public Person(string[] values): base(values)
         {
-            if (values.Length < 5) throw new InvalidNumberOfArgsException();
+            if (values.Length < 4) throw new InvalidNumberOfArgsException();
 
-            Name = values[2];
-            Age = Convert.ToUInt64(values[3]);
-            Phone = values[4];
-            Email = values[5];
+            Name = values[1];
+            Age = Convert.ToUInt64(values[2]);
+            Phone = values[3];
+            Email = values[4];
         }
         public Person(byte[] values): base(values)
         {
@@ -46,6 +46,18 @@ namespace projOb
         public override string JsonSerialize()
         {
             return JsonSerializer.Serialize(this);
+        }
+        public override void Delete()
+        {
+            base.Delete();
+        }
+        public override void CreateFieldStrings()
+        {
+            base.CreateFieldStrings();
+            FieldStrings.Add("name", Name);
+            FieldStrings.Add("phone", Phone);
+            FieldStrings.Add("email", Email);
+            FieldStrings.Add("age", Age.ToString());
         }
     }
     [Serializable]
@@ -61,10 +73,10 @@ namespace projOb
         [JsonConstructor]
         public Crew(string[] values) : base(values)
         {
-            if (values.Length < 7) throw new InvalidNumberOfArgsException();
+            if (values.Length < 6) throw new InvalidNumberOfArgsException();
 
-            Practice = Convert.ToUInt16(values[6]);
-            Role = values[7];
+            Practice = Convert.ToUInt16(values[5]);
+            Role = values[6];
         }
         public Crew(byte[] values) : base(values)
         {
@@ -74,6 +86,17 @@ namespace projOb
         public override string JsonSerialize()
         {
             return JsonSerializer.Serialize(this);
+        }
+        public override void Delete()
+        {
+            base.Delete();
+            Generator.List.CrewList.Remove(this);
+        }
+        public override void CreateFieldStrings()
+        {
+            base.CreateFieldStrings();
+            FieldStrings.Add("practice", Practice.ToString());
+            FieldStrings.Add("role", Role);
         }
     }
     [Serializable]
@@ -89,10 +112,10 @@ namespace projOb
         [JsonConstructor]
         public Passenger(string[] values) : base(values)
         {
-            if (values.Length < 7) throw new InvalidNumberOfArgsException();
+            if (values.Length < 6) throw new InvalidNumberOfArgsException();
 
-            Class = values[6];
-            Miles = Convert.ToUInt64(values[7]);
+            Class = values[5];
+            Miles = Convert.ToUInt64(values[6]);
         }
         public Passenger(byte[] values): base(values)
         {
@@ -102,6 +125,17 @@ namespace projOb
         public override string JsonSerialize()
         {
             return JsonSerializer.Serialize(this);
+        }
+        public override void Delete()
+        {
+            base.Delete();
+            Generator.List.PassengerList.Remove(this);
+        }
+        public override void CreateFieldStrings()
+        {
+            base.CreateFieldStrings();
+            FieldStrings.Add("class", Class);
+            FieldStrings.Add("miles", Miles.ToString());
         }
     }
 }

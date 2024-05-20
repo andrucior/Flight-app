@@ -207,5 +207,28 @@ namespace projOb
     {
         public override AddParser Create(string line) { return new AddParser(line); }
     }
+    public abstract class CommandGenerator 
+    {
+        public abstract Command Create(string line);
+    }
+    public class DisplayGenerator: CommandGenerator
+    {
+        public override Display Create(string line) { return new Display(line); }
+    }
+    public class AddGenerator: CommandGenerator
+    {
+        public override Add Create(string line) { return new Add(line); } 
+    }
+    public class DeleteGenerator: CommandGenerator
+    {
+        public override Delete Create(string line) { return new Delete(line); }
+    }
+    public class UpdateGenerator: CommandGenerator
+    {
+        public override Update Create(string line)
+        {
+            return new Update(line);
+        }
+    }
 
 }

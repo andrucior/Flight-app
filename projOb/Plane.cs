@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -25,11 +26,11 @@ namespace projOb
         [JsonConstructor]
         public Plane(string[] values): base(values)
         {
-            if (values.Length < 4) throw new InvalidNumberOfArgsException();
+            if (values.Length < 3) throw new InvalidNumberOfArgsException();
             
-            Serial = values[2];
-            ISO = values[3];
-            Model = values[4];
+            Serial = values[1];
+            ISO = values[2];
+            Model = values[3];
         }
         public Plane(byte[] values) : base(values)
         {
@@ -43,6 +44,18 @@ namespace projOb
         {
             return JsonSerializer.Serialize(this);
         }
+        public override void Delete()
+        {
+            base.Delete();
+        }
+        public override void CreateFieldStrings()
+        {
+            base.CreateFieldStrings();
+            FieldStrings.Add("serial", Serial);
+            FieldStrings.Add("iso", ISO);
+            FieldStrings.Add("model", Model);
+        }
+        
 
     }
     [Serializable]
@@ -61,11 +74,11 @@ namespace projOb
         [JsonConstructor]
         public PassengerPlane(string[] values) : base(values) 
         {
-            if (values.Length < 7) throw new InvalidNumberOfArgsException();
+            if (values.Length < 6) throw new InvalidNumberOfArgsException();
 
-            FirstClassSize = Convert.ToUInt16(values[5]);
-            BusinessClassSize = Convert.ToUInt16(values[6]);
-            EconomyClassSize = Convert.ToUInt16(values[7]);
+            FirstClassSize = Convert.ToUInt16(values[4]);
+            BusinessClassSize = Convert.ToUInt16(values[5]);
+            EconomyClassSize = Convert.ToUInt16(values[6]);
         }
         public PassengerPlane(byte[] values): base(values)
         {
@@ -81,6 +94,18 @@ namespace projOb
         {
             return media.CreateMessage(this);
         }
+        public override void Delete()
+        {
+            base.Delete();
+            Generator.List.PassengerPlaneList.Remove(this);
+        }
+        public override void CreateFieldStrings()
+        {
+            base.CreateFieldStrings();
+            FieldStrings.Add("firstclasssize", FirstClassSize.ToString());
+            FieldStrings.Add("businessclasssize", BusinessClassSize.ToString());
+            FieldStrings.Add("economyclasssize", EconomyClassSize.ToString());
+        }
     }
     [Serializable]
     public class CargoPlane: Plane, IReportable
@@ -93,9 +118,9 @@ namespace projOb
         [JsonConstructor]
         public CargoPlane(string[] values): base(values) 
         {
-            if (values.Length < 5) throw new InvalidNumberOfArgsException();
+            if (values.Length < 4) throw new InvalidNumberOfArgsException();
 
-            MaxLoad = Convert.ToSingle(values[5]);
+            MaxLoad = Convert.ToSingle(values[4]);
         }
         public CargoPlane(byte[] values): base(values)
         {
@@ -109,6 +134,15 @@ namespace projOb
         {
             return media.CreateMessage(this);
         }
-        
+        public override void Delete()
+        {
+            base.Delete();
+            Generator.List.CargoPlanes.Remove(this);
+        }
+        public override void CreateFieldStrings()
+        {
+            base.CreateFieldStrings();
+            FieldStrings.Add("maxload", MaxLoad.ToString());
+        }
     }
 }

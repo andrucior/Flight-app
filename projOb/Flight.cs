@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace projOb
 {
@@ -38,27 +39,27 @@ namespace projOb
         [JsonConstructor]
         public Flight(string[] values): base(values)
         {
-            if (values.Length < 11) throw new InvalidNumberOfArgsException();
+            if (values.Length < 10) throw new InvalidNumberOfArgsException();
 
-            OriginID = Convert.ToUInt64(values[2]);
-            TargetID = Convert.ToUInt64(values[3]);
-            TakeOff = values[4];
-            Landing = values[5];
+            OriginID = Convert.ToUInt64(values[1]);
+            TargetID = Convert.ToUInt64(values[2]);
+            TakeOff = values[3];
+            Landing = values[4];
             
             if (Convert.ToDateTime(TakeOff) > Convert.ToDateTime(Landing)) throw new ArgumentException();
 
-            Longitude = Convert.ToSingle(values[6], CultureInfo.InvariantCulture);
-            Latitude = Convert.ToSingle(values[7], CultureInfo.InvariantCulture);
-            AMSL = Convert.ToSingle(values[8], CultureInfo.InvariantCulture);
-            PlaneID = Convert.ToUInt64(values[9]);
+            Longitude = Convert.ToSingle(values[5], CultureInfo.InvariantCulture);
+            Latitude = Convert.ToSingle(values[6], CultureInfo.InvariantCulture);
+            AMSL = Convert.ToSingle(values[7], CultureInfo.InvariantCulture);
+            PlaneID = Convert.ToUInt64(values[8]);
             
-            string[] tmp = (values[10])
+            string[] tmp = (values[9])
                 .Trim('[', ']')
                 .Split(';');
             CrewID = new UInt64[tmp.Length];
             CrewID = tmp.Select(UInt64.Parse).ToArray();
 
-            string[] tmp2 = (values[11])
+            string[] tmp2 = (values[10])
                 .Trim('[', ']')
                 .Split(';');   
             LoadID = new UInt64[tmp2.Length];
@@ -87,6 +88,23 @@ namespace projOb
         public override string JsonSerialize()
         {
             return JsonSerializer.Serialize(this);
+        }
+        public override void Delete()
+        {
+            base.Delete();
+            Generator.List.Flights.Remove(this);
+        }
+        public override void CreateFieldStrings()
+        {
+            base.CreateFieldStrings();
+            FieldStrings.Add("originid", OriginID.ToString());
+            FieldStrings.Add("targetid", TargetID.ToString());
+            FieldStrings.Add("takeoff", TakeOff);
+            FieldStrings.Add("landing", Landing);
+            FieldStrings.Add("longitude", Longitude.ToString());
+            FieldStrings.Add("latitude", Latitude.ToString());
+            FieldStrings.Add("amsl", AMSL.ToString());
+            FieldStrings.Add("planeid", PlaneID.ToString());
         }
     }
 }

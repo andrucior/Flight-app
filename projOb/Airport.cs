@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Avalonia.Data;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -30,14 +31,14 @@ namespace projOb
         [JsonConstructor]
         public Airport(string[] values): base(values)
         {
-            if (values.Length < 7) throw new InvalidNumberOfArgsException();
+            if (values.Length < 6) throw new InvalidNumberOfArgsException();
 
-            Name = Convert.ToString(values[2]);
-            Code = Convert.ToString(values[3]);
-            Longitude = Convert.ToSingle(values[4], CultureInfo.InvariantCulture);
-            Latitude = Convert.ToSingle(values[5], CultureInfo.InvariantCulture);
-            AMSL = Convert.ToSingle(values[6], CultureInfo.InvariantCulture);
-            ISO = values[7];
+            Name = Convert.ToString(values[1]);
+            Code = Convert.ToString(values[2]);
+            Longitude = Convert.ToSingle(values[3], CultureInfo.InvariantCulture);
+            Latitude = Convert.ToSingle(values[4], CultureInfo.InvariantCulture);
+            AMSL = Convert.ToSingle(values[5], CultureInfo.InvariantCulture);
+            ISO = values[6];
         }
         public Airport(byte[] values) : base(values)
         {
@@ -56,6 +57,21 @@ namespace projOb
         public string Accept(Media media)
         {
             return media.CreateMessage(this);
+        }
+        public override void Delete()
+        {
+            base.Delete();
+            Generator.List.Airports.Remove(this);
+        }
+        public override void CreateFieldStrings()
+        {
+            base.CreateFieldStrings();
+            FieldStrings.Add("name", Name);
+            FieldStrings.Add("longitude", Longitude.ToString());
+            FieldStrings.Add("latitude", Latitude.ToString());
+            FieldStrings.Add("amsl", AMSL.ToString());
+            FieldStrings.Add("code", Code.ToString());
+            FieldStrings.Add("iso", ISO.ToString());
         }
     }
 }

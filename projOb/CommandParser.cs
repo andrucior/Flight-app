@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -38,6 +39,7 @@ namespace projOb
             if (!Command[1].Contains('*'))
             {
                 ObjectFields = Command[1].Split(",");
+                ObjectFields = ObjectFields.Select(x => x.ToLower()).ToArray();
             }
             else 
             {
@@ -86,7 +88,7 @@ namespace projOb
         public string[]? Conditions { get; private set; }    
         public DeleteParser(string line) : base(line) 
         {
-            ClassName= Command[1];
+            ClassName = Command[1];
             if (Command.Length > 3) 
             {
                 string tmp = Convert.ToString(Command[3..]);
@@ -104,16 +106,29 @@ namespace projOb
             ClassName = Command[1];
             string tmp = Convert.ToString(Command[3..]);
             KeyValueList = tmp.TrimEnd('(',  ')').Split(',');
+            KeyValueList = KeyValueList.Select(x => GetRightHandSide(x)).ToArray();
+        }
+        static private string GetRightHandSide(string input)
+        {
+            string[] splitted = input.Split('=');
+            return splitted[1];
         }
     }
+
     public class ConditionMaker
     {
-        public string FieldName;
-        public string Operator;
-        public object Value;
-        public MyObject Object;
-        public Func<object, bool> Predicate;
-        public Dictionary<string, object> Types = new Dictionary<string, object>()
+        public string? FieldName;
+        public string? Operator;
+        public IComparable? Value;
+        public MyObject? Object;
+        public string? Condition;
+        public ParameterExpression Parameter;
+        MemberExpression Property;
+        ConstantExpression Constant;
+        BinaryExpression Comparison;
+        LambdaExpression Predicate;
+
+        public Dictionary<string, IComparable> Types = new Dictionary<string, IComparable>()
         {
             { "ID", UInt64.MaxValue },
             { "Name", string.Empty },
@@ -123,7 +138,6 @@ namespace projOb
             { "TakeOff", string.Empty },
             { "WorldPosition", (float.MinValue, float.MinValue) },
             { "AMSL", float.MinValue },
-            { "Plane",  new Plane() },
             { "ISO", string.Empty },
             { "Serial", string.Empty },
             { "Model", string.Empty },
@@ -138,49 +152,83 @@ namespace projOb
             { "Miles", UInt64.MaxValue },
             { "Age", UInt64.MaxValue },
             { "Practise", UInt64.MaxValue },
-            { "Role", string.Empty }
+            { "Role", string.Empty },
+            { "Class", string.Empty }
         };
+        public Dictionary<string, Func<IComparable, IComparable, bool>> Lambdas = new Dictionary<string, Func<IComparable, IComparable, bool>>()
+        {
+            { "<", (x,y) =>  x.CompareTo(y) < 0},
+            { "<=", (x,y) => x.CompareTo(y) <= 0 },
+            { "==", (x,y) => x.CompareTo(y) == 0},
+            { ">=", (x,y) => x.CompareTo(y) >= 0},
+            { ">", (x,y) => x.CompareTo(y) > 0},
+            { "!=", (x,y) => x.CompareTo(y) != 0}
+        };
+        public ConditionMaker(string condition)
+        {
+            Condition = condition; 
+        }
+        public bool CheckPredicate(Airport airport)
+        {
+            string[] tmp = Condition.Split(' ');
+            FieldName = tmp[0];
+            Operator = tmp[1];
+            Object = airport;
+            Types.TryGetValue(FieldName, out var field);
+            Value = (IComparable?)tmp[2];
+            MemberExpression property = Expression.Property(Expression.Constant(airport), FieldName);
+            return false;
+        }
         public ConditionMaker(string condition, MyObject obj)
         {
             string[] tmp = condition.Split(' ');
             FieldName = tmp[0];
             Operator = tmp[1];
             Object = obj;
-            Types.TryGetValue(FieldName, out var field);
-            Value = Convert.ChangeType(tmp[2], field.GetType());
+            if (FieldName.StartsWith("Plane."))
+                FieldName = FieldName[6..];
+            
+            Types.TryGetValue(FieldName, out IComparable? field);
+            Value = (IComparable?)Convert.ChangeType(tmp[2], field.GetType());
 
-            ParameterExpression parameter = Expression.Parameter(field.GetType(), FieldName);
-            MemberExpression property = Expression.Property(Expression.Constant(obj), FieldName);
-            ConstantExpression constant = Expression.Constant(Value, field.GetType());
-            BinaryExpression comparison;
+            Parameter = Expression.Parameter(field.GetType(), FieldName);
+            Property = Expression.Property(Expression.Constant(obj), FieldName);
+            Constant = Expression.Constant(Value, field.GetType());
+            
 
             switch(Operator) 
             {
                 case "<":
-                    comparison = Expression.LessThan(property, constant); 
+                    Comparison = Expression.LessThan(Property, Constant); 
                     break;
                 case "<=":
-                    comparison = Expression.LessThanOrEqual(property, constant);
+                    Comparison = Expression.LessThanOrEqual(Property, Constant);
                     break;
                 case ">":
-                    comparison = Expression.GreaterThan(property, constant);
+                    Comparison = Expression.GreaterThan(Property, Constant);
                     break;
                 case ">=":
-                    comparison = Expression.GreaterThanOrEqual(property, constant); 
+                    Comparison = Expression.GreaterThanOrEqual(Property, Constant); 
                     break;
                 case "==":
-                    comparison = Expression.Equal(property, constant);
+                    Comparison = Expression.Equal(Property, Constant);
+                    break;
+                case "!=":
+                    Comparison = Expression.NotEqual(Property, Constant);   
                     break;
                 default:
                     throw new Exception("invalid operator");
             }
 
-            Predicate = Expression.Lambda<Func<object, bool>>(comparison, parameter).Compile();
+             Predicate = Expression.Lambda(Comparison, Parameter);
         }
+        
         public bool CheckPredicate()
         {
-            return Predicate.Invoke(Value);
+            var kurwa =  (Func<MyObject, bool>)Predicate.Compile();
+            return kurwa(Object);
         }
+     
     }
     
 }
