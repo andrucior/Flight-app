@@ -159,17 +159,27 @@ namespace projOb
             PositionUpdateArgs = positionUpdateArgs;
             StartDate = date;
         }
-        public FlightAdapter Update()
+        public FlightAdapter? Update()
         {
             Flight.Latitude = PositionUpdateArgs.Latitude;
             Flight.Longitude = PositionUpdateArgs.Longitude;
             Flight.AMSL = PositionUpdateArgs.AMSL;
-
-            Airport target = FlightAdapter.FindAirports(Flight).destination;
-            FlightAdapter flightAdapter =  new FlightAdapterGenerator().Create(Flight, StartDate, 
-                new WorldPosition(Flight.Latitude, Flight.Longitude), new WorldPosition(target.Latitude, target.Longitude));
-            return flightAdapter;
+            try
+            {
+                Airport target = FlightAdapter.FindAirports(Flight).destination;
+                FlightAdapter flightAdapter = new FlightAdapterGenerator().Create(Flight, StartDate,
+                    new WorldPosition(Flight.Latitude, Flight.Longitude), new WorldPosition(target.Latitude, target.Longitude));
+                return flightAdapter;
+            }
+            catch (AirportException) { return null; }
         }
 
+    }
+    public class FieldStringsSubscriber
+    {
+        public void Update(object sender, UpdateArgs updateArgs)
+        {
+
+        }
     }
 }

@@ -35,6 +35,7 @@ namespace projOb
             PlaneID = 0;
             CrewID = null;
             LoadID = null;
+            CreateFieldStrings();
         }
         [JsonConstructor]
         public Flight(string[] values): base(values)
@@ -64,6 +65,7 @@ namespace projOb
                 .Split(';');   
             LoadID = new UInt64[tmp2.Length];
             LoadID = tmp2.Select(UInt64.Parse).ToArray();
+            CreateFieldStrings();
         }
         public Flight(byte[] values) : base(values)
         {
@@ -84,6 +86,7 @@ namespace projOb
             LoadID = new UInt64[PCC];
             for (int i = 0; (i < PCC); i++)
                 LoadID[i] = BitConverter.ToUInt64(values, 59 + 8 * CC + 8 * i);
+            CreateFieldStrings();
         }
         public override string JsonSerialize()
         {
@@ -105,6 +108,18 @@ namespace projOb
             FieldStrings.Add("latitude", Latitude.ToString());
             FieldStrings.Add("amsl", AMSL.ToString());
             FieldStrings.Add("planeid", PlaneID.ToString());
+        }
+        public override void OnUpdate(object? sender, EventArgs e)
+        {
+            base.OnUpdate(sender, e);
+            OriginID = Convert.ToUInt64(FieldStrings["originid"]);
+            TargetID = Convert.ToUInt64(FieldStrings["targetid"]);
+            TakeOff = FieldStrings["takeoff"];
+            Landing = FieldStrings["landing"];
+            Longitude = Convert.ToSingle(FieldStrings["longitude"]);
+            Latitude = Convert.ToSingle(FieldStrings["latitude"]);
+            AMSL = Convert.ToSingle(FieldStrings["amsl"]);
+            PlaneID = Convert.ToUInt64(FieldStrings["planeid"]);
         }
     }
 }

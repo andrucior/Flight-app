@@ -27,6 +27,7 @@ namespace projOb
             Latitude = 0;
             AMSL = 0;
             ISO = null;
+            CreateFieldStrings();
         }
         [JsonConstructor]
         public Airport(string[] values): base(values)
@@ -39,6 +40,7 @@ namespace projOb
             Latitude = Convert.ToSingle(values[4], CultureInfo.InvariantCulture);
             AMSL = Convert.ToSingle(values[5], CultureInfo.InvariantCulture);
             ISO = values[6];
+            CreateFieldStrings();
         }
         public Airport(byte[] values) : base(values)
         {
@@ -49,6 +51,7 @@ namespace projOb
             Latitude = BitConverter.ToSingle(values, 24 + NL);
             AMSL = BitConverter.ToSingle(values, 28 + NL);
             ISO = Encoding.ASCII.GetString(values, 32 + NL, 3);
+            CreateFieldStrings();
         }
         public override string JsonSerialize()
         {
@@ -70,8 +73,18 @@ namespace projOb
             FieldStrings.Add("longitude", Longitude.ToString());
             FieldStrings.Add("latitude", Latitude.ToString());
             FieldStrings.Add("amsl", AMSL.ToString());
-            FieldStrings.Add("code", Code.ToString());
-            FieldStrings.Add("iso", ISO.ToString());
+            FieldStrings.Add("code", Code);
+            FieldStrings.Add("iso", ISO); 
+        }
+        public override void OnUpdate(object? sender, EventArgs e)
+        {
+            base.OnUpdate(sender, e);
+            Name = FieldStrings["name"];
+            Longitude = Convert.ToSingle(FieldStrings["longitude"]);
+            Latitude = Convert.ToSingle(FieldStrings["latitude"]);
+            AMSL = Convert.ToSingle(FieldStrings["amsl"]);
+            Code = FieldStrings["code"];
+            ISO = FieldStrings["iso"];
         }
     }
 }

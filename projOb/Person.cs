@@ -23,6 +23,7 @@ namespace projOb
             Age = 0;
             Phone = null;
             Email = null;
+            CreateFieldStrings();
         }
         [JsonConstructor]
         public Person(string[] values): base(values)
@@ -33,6 +34,7 @@ namespace projOb
             Age = Convert.ToUInt64(values[2]);
             Phone = values[3];
             Email = values[4];
+            CreateFieldStrings();
         }
         public Person(byte[] values): base(values)
         {
@@ -42,6 +44,7 @@ namespace projOb
             Phone = Encoding.ASCII.GetString(values, 19 +  NameL, 12);
             UInt16 EmailL = BitConverter.ToUInt16(values, 31 + NameL);
             Email = Encoding.ASCII.GetString(values, 33 + NameL, EmailL);
+            CreateFieldStrings();
         }
         public override string JsonSerialize()
         {
@@ -59,6 +62,14 @@ namespace projOb
             FieldStrings.Add("email", Email);
             FieldStrings.Add("age", Age.ToString());
         }
+        public override void OnUpdate(object? sender, EventArgs e)
+        {
+            base.OnUpdate(sender, e);
+            Name = FieldStrings["name"];
+            Phone = FieldStrings["phone"];
+            Email = FieldStrings["email"];
+            Age = Convert.ToUInt64(FieldStrings["age"]);
+        }
     }
     [Serializable]
     public class Crew: Person
@@ -69,6 +80,7 @@ namespace projOb
         {
             Practice = 0;
             Role = null;
+            CreateFieldStrings();
         }
         [JsonConstructor]
         public Crew(string[] values) : base(values)
@@ -77,11 +89,13 @@ namespace projOb
 
             Practice = Convert.ToUInt16(values[5]);
             Role = values[6];
+            CreateFieldStrings();
         }
         public Crew(byte[] values) : base(values)
         {
             Practice = BitConverter.ToUInt16(values, 33 + Name.Length + Email.Length);
             Role = Encoding.ASCII.GetString(values, 35 + Name.Length + Email.Length, 1);
+            CreateFieldStrings();
         }
         public override string JsonSerialize()
         {
@@ -98,6 +112,12 @@ namespace projOb
             FieldStrings.Add("practice", Practice.ToString());
             FieldStrings.Add("role", Role);
         }
+        public override void OnUpdate(object? sender, EventArgs e)
+        {
+            base.OnUpdate(sender, e);
+            Practice = Convert.ToUInt16(FieldStrings["practice"]);
+            Role = FieldStrings["role"];
+        }
     }
     [Serializable]
     public class Passenger: Person
@@ -108,6 +128,7 @@ namespace projOb
         {
             Class = null;
             Miles = 0;
+            CreateFieldStrings();
         }
         [JsonConstructor]
         public Passenger(string[] values) : base(values)
@@ -116,11 +137,13 @@ namespace projOb
 
             Class = values[5];
             Miles = Convert.ToUInt64(values[6]);
+            CreateFieldStrings();
         }
         public Passenger(byte[] values): base(values)
         {
             Class = Encoding.ASCII.GetString(values, 33 + Name.Length + Email.Length, 1);
             Miles = BitConverter.ToUInt64(values, 34 + Name.Length + Email.Length);
+            CreateFieldStrings();
         }
         public override string JsonSerialize()
         {
@@ -136,6 +159,12 @@ namespace projOb
             base.CreateFieldStrings();
             FieldStrings.Add("class", Class);
             FieldStrings.Add("miles", Miles.ToString());
+        }
+        public override void OnUpdate(object? sender, EventArgs e)
+        {
+            base.OnUpdate(sender, e);
+            Class = FieldStrings["class"];
+            Miles = Convert.ToUInt64(FieldStrings["miles"]);
         }
     }
 }

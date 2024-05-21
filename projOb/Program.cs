@@ -21,6 +21,10 @@ class Project
     public static Dictionary<string, Generator> generators = new Dictionary<string, Generator>();
     public static List<MyObject> MyObjects = new List<MyObject>();
     private static Subscriber? Subscriber;
+    // TODO:
+    // USAGE
+    // UPDATE
+    // WYSWIETLANIE
     static void Main(string[] args)
     {
         string filePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "test.ftr");
@@ -140,17 +144,19 @@ class Project
             while (Project.running)
             {
                 message = Console.ReadLine();
-                if (message == "exit")
+                message = message.ToLower();
+                var messageParser = new CommandParser(message);
+                if (message.Contains("exit"))
                 {
                     if (server.IsAlive)
                         server.IsBackground = true;
                     Project.running = false;
                 }
-                if (message == "print")
+                if (message.Contains("print"))
                 {
                     SnapShot();
                 }
-                if (message == "report")
+                if (message.Contains("report"))
                 {
                     NewsGenerator newsGenerator = new NewsGenerator(medias, GetReportableList());
                     string? output = newsGenerator.GenerateTextNews();
@@ -161,9 +167,8 @@ class Project
                         output = newsGenerator.GenerateTextNews();
                     }
                 }
-                else
-                {
-                    var messageParser = new CommandParser(message);
+                else if (Command.CommandGenerators.ContainsKey(messageParser.CommandName))
+                {     
                     var command = Command.CommandGenerators[messageParser.CommandName].Create(message);
                     command.Execute();
                 }
@@ -221,13 +226,20 @@ class Project
 
                 if (DateTime.Compare(takeOff, StartDate) <= 0)
                 {
-                    Airport target = FlightAdapter.FindAirports(flight).destination;
-                    FlightAdapterGenerator flightAdapterGenerator = new FlightAdapterGenerator();
-                    FlightGUI flightGUI = flightAdapterGenerator.Create(flight, StartDate, 
-                        new WorldPosition(flight.Latitude, flight.Longitude), new WorldPosition(target.Latitude, target.Longitude));
+                    try
+                    {
+                        Airport target = FlightAdapter.FindAirports(flight).destination;
+                        FlightAdapterGenerator flightAdapterGenerator = new FlightAdapterGenerator();
+                        FlightGUI flightGUI = flightAdapterGenerator.Create(flight, StartDate,
+                            new WorldPosition(flight.Latitude, flight.Longitude), new WorldPosition(target.Latitude, target.Longitude));
 
-                    lock (Generator.List.FlightGUIs)
-                        Generator.List.FlightGUIs.Add(flightGUI);
+                        lock (Generator.List.FlightGUIs)
+                            Generator.List.FlightGUIs.Add(flightGUI);
+                    }
+                    catch(AirportException)
+                    {
+                        continue;
+                    }
                 }
             }
             

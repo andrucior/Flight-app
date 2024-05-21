@@ -21,6 +21,7 @@ namespace projOb
             Weight = 0;
             Code = null;
             Description = null;
+            CreateFieldStrings();
         }
         [JsonConstructor]
         public Cargo(string[] values): base(values)
@@ -30,6 +31,7 @@ namespace projOb
             Weight = Convert.ToSingle(values[1], CultureInfo.InvariantCulture);
             Code = values[2];
             Description = values[3];
+            CreateFieldStrings();
         }
         public Cargo(byte[] values) : base(values)
         {
@@ -37,6 +39,7 @@ namespace projOb
             Code = Encoding.ASCII.GetString(values, 19, 6);
             UInt16 DL = BitConverter.ToUInt16(values, 25);
             Description = Encoding.ASCII.GetString(values, 27, DL);
+            CreateFieldStrings();
         }
         public override string JsonSerialize()
         {
@@ -53,6 +56,13 @@ namespace projOb
             FieldStrings.Add("weight", Weight.ToString());
             FieldStrings.Add("code", Code);
             FieldStrings.Add("description", Description);
+        }
+        public override void OnUpdate(object? sender, EventArgs e)
+        {
+            base.OnUpdate(sender, e);
+            Weight = Convert.ToSingle(FieldStrings["weight"]);
+            Code = FieldStrings["code"];
+            Description = FieldStrings["description"];
         }
     }
 }

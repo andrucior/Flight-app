@@ -11,7 +11,22 @@ namespace projOb
     [Serializable]
     public abstract class MyObject
     {
-        public Dictionary<string, string>? FieldStrings;
+        public Dictionary<string, string> FieldStrings;
+        public UInt64 ID { get; set; }
+        public MyObject() { ID = 0; }
+        [JsonConstructor]
+        public MyObject(string[] values) 
+        {
+            CreateFieldStrings();
+            ID = Convert.ToUInt64(values[0]); 
+        }
+        public MyObject(byte[] values)
+        {
+            ID = BitConverter.ToUInt64(values, 7);
+            CreateFieldStrings();
+        }
+        public abstract string JsonSerialize();
+        public virtual void Delete() { Project.MyObjects.Remove(this); }
         public virtual void CreateFieldStrings()
         {
             FieldStrings = new Dictionary<string, string>()
@@ -19,13 +34,6 @@ namespace projOb
                 { "id", ID.ToString() }
             };
         }
-        public UInt64 ID { get; set; }
-        public MyObject() { ID = 0; }
-        [JsonConstructor]
-        public MyObject(string[] values) { ID = Convert.ToUInt64(values[0]); }
-        public MyObject(byte[] values) { ID = BitConverter.ToUInt64(values, 7); }
-        public abstract string JsonSerialize();
-        public virtual void Delete() { Project.MyObjects.Remove(this); }
         public string[] GetFields(string[] fields)
         {
             List<string> values = new List<string>();
@@ -40,6 +48,11 @@ namespace projOb
             
             return values.ToArray();
         }
+        public virtual void OnUpdate(object? sender, EventArgs e)
+        {
+            ID = Convert.ToUInt64(FieldStrings["id"]);
+        }
+        
 
     }
 }

@@ -68,7 +68,7 @@ namespace projOb
             Airport? origin = Airports.Find((Airport airp) => (airp.ID == flight.OriginID));
             Airport? target = Airports.Find((Airport airp) => (airp.ID == flight.TargetID));
 
-            if (origin == null || target == null) throw new Exception("Aiport not found");
+            if (origin == null || target == null) throw new AirportException("Aiport not found");
 
             return (origin, target);
         }

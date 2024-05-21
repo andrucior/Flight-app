@@ -10,13 +10,13 @@ namespace projOb
     {
         public Dictionary<string, IEnumerable<MyObject>> Objects = new Dictionary<string, IEnumerable<MyObject>>
         {
-            { "Flight", Generator.List.Flights },
-            { "Crew", Generator.List.CrewList },
-            { "Passenger", Generator.List.PassengerList },
-            { "Cargo",  Generator.List.CargoList },
-            { "CargoPlane", Generator.List.CargoPlanes },
-            { "PassengerPlane", Generator.List.PassengerPlaneList },
-            { "Airport", Generator.List.Airports }
+            { "flight", Generator.List.Flights },
+            { "crew", Generator.List.CrewList },
+            { "passenger", Generator.List.PassengerList },
+            { "cargo",  Generator.List.CargoList },
+            { "cargoplane", Generator.List.CargoPlanes },
+            { "passengerplane", Generator.List.PassengerPlaneList },
+            { "airport", Generator.List.Airports }
         };
         static public Dictionary<string, CommandGenerator> CommandGenerators = new Dictionary<string, CommandGenerator>
         {
@@ -54,28 +54,45 @@ namespace projOb
             if (objects == null) throw new Exception();
             
             List<MyObject> toDisplay = new List<MyObject>();
+           
             lock (objects)
             {
+                
+
                 foreach (var obj in objects)
                 {
+                    bool toAdd = false;
                     if (Parser.Conditions != null)
                     {
+                        int condCounter = 0;
                         foreach (var condition in Parser.Conditions)
                         {
                             var cond = new ConditionMaker(condition, obj);
-                            if (!cond.CheckPredicate())
-                                break;
+                            if (condCounter == 0)
+                                toAdd = cond.CheckPredicate();
+                            else if (Parser.OR_AND[condCounter - 1] == "&&")
+                                toAdd = toAdd && cond.CheckPredicate();
+                            else
+                                toAdd = toAdd || cond.CheckPredicate();
+                            condCounter++;
                         }
                     }
-                    toDisplay.Add(obj);
+                    if (toAdd)
+                        toDisplay.Add(obj);
                 }
             }
-           
             DisplayOnConsole(toDisplay, Parser.ObjectFields);
-
         }
         public void DisplayOnConsole(List<MyObject> objects, string[] objectFields)
         {
+            if (objectFields == null && objects.Count > 0)
+            {
+                objects[0].CreateFieldStrings();
+                objectFields = objects[0].FieldStrings.Keys.ToArray();
+            }
+            if (objects.Count == 0) 
+                return;
+            
             string[,] fieldValues = new string[objects.Count + 1, objectFields.Length];
             for (int k = 0; k < objectFields.Length; k++)
                 fieldValues[0, k] = objectFields[k].ToUpper();
@@ -146,7 +163,7 @@ namespace projOb
                     {
                         foreach (var condition in Parser.Conditions)
                         {
-                            var cond = new ConditionMaker(condition);
+                            var cond = new ConditionMaker(condition, obj);
                             if (!cond.CheckPredicate())
                                 break;
                         }
@@ -170,9 +187,49 @@ namespace projOb
     {
         public new UpdateParser Parser { get; private set; }
         public Update(string line): base(line) { Parser = new UpdateParser(line); }
+        public event EventHandler Changed;
         public override void Execute()
         {
-            throw new NotImplementedException();
+            Objects.TryGetValue(Parser.ClassName, out var objects);
+            
+            if (objects == null) throw new Exception();
+
+            string[] fields = Parser.KeyValueList.Select(CommandParser.GetLeftHandSide).ToArray();
+            fields = fields.Select(x => x.Trim()).ToArray();
+            string[] values = Parser.KeyValueList.Select(CommandParser.GetRightHandSide).ToArray();
+            values = values.Select(x => x.Trim()).ToArray();
+            FieldStringsSubscriber fieldStringsSubscriber = new FieldStringsSubscriber();
+             
+            foreach (var obj in objects)
+            {
+                bool toUpdate = true;
+                int i = 0;
+                foreach (var field in fields)
+                {
+                    
+                    if (Parser.Conditions != null)
+                    {
+                        foreach(var condition in Parser.Conditions)
+                        {
+                            ConditionMaker cond = new ConditionMaker(condition, obj);
+                            
+                            if (!cond.CheckPredicate())
+                            {
+                                toUpdate = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (toUpdate)
+                    {
+                        Changed += obj.OnUpdate;
+                        obj.FieldStrings[$"{field}"] = values[i++];
+                        this.Changed?.Invoke(this, new EventArgs());
+                        Changed -= obj.OnUpdate;
+                    }
+                }
+                
+            }
         }
     }
 

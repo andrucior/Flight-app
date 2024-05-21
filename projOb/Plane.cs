@@ -22,6 +22,7 @@ namespace projOb
             Serial = null; 
             ISO = null; 
             Model = null;
+            CreateFieldStrings();
         }
         [JsonConstructor]
         public Plane(string[] values): base(values)
@@ -31,6 +32,7 @@ namespace projOb
             Serial = values[1];
             ISO = values[2];
             Model = values[3];
+            CreateFieldStrings();
         }
         public Plane(byte[] values) : base(values)
         {
@@ -39,6 +41,7 @@ namespace projOb
             ISO = Encoding.ASCII.GetString(values, 25, 3);
             UInt16 ML = BitConverter.ToUInt16(values, 28);
             Model = Encoding.ASCII.GetString(values, 30, ML);
+            CreateFieldStrings();
         }
         public override string JsonSerialize()
         {
@@ -70,6 +73,7 @@ namespace projOb
             FirstClassSize = 0;
             BusinessClassSize = 0;
             EconomyClassSize = 0;
+            CreateFieldStrings();
         }
         [JsonConstructor]
         public PassengerPlane(string[] values) : base(values) 
@@ -79,12 +83,14 @@ namespace projOb
             FirstClassSize = Convert.ToUInt16(values[4]);
             BusinessClassSize = Convert.ToUInt16(values[5]);
             EconomyClassSize = Convert.ToUInt16(values[6]);
+            CreateFieldStrings();
         }
         public PassengerPlane(byte[] values): base(values)
         {
             FirstClassSize = BitConverter.ToUInt16(values, 30 + Model.Length);
             BusinessClassSize = BitConverter.ToUInt16(values, 32 + Model.Length);
             EconomyClassSize = BitConverter.ToUInt16(values, 34 + Model.Length);
+            CreateFieldStrings();
         }
         public override string JsonSerialize()
         {
@@ -114,6 +120,7 @@ namespace projOb
         public CargoPlane(): base()
         {
             MaxLoad = 0;
+            CreateFieldStrings();
         }
         [JsonConstructor]
         public CargoPlane(string[] values): base(values) 
@@ -121,10 +128,12 @@ namespace projOb
             if (values.Length < 4) throw new InvalidNumberOfArgsException();
 
             MaxLoad = Convert.ToSingle(values[4]);
+            CreateFieldStrings();
         }
         public CargoPlane(byte[] values): base(values)
         {
             MaxLoad = BitConverter.ToSingle(values, 30 + Model.Length);
+            CreateFieldStrings();
         }
         public override string JsonSerialize()
         {
