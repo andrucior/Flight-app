@@ -21,10 +21,6 @@ class Project
     public static Dictionary<string, Generator> generators = new Dictionary<string, Generator>();
     public static List<MyObject> MyObjects = new List<MyObject>();
     private static Subscriber? Subscriber;
-    // TODO:
-    // USAGE ?
-    // UPDATE ?
-    // WYSWIETLANIE !!!
     static void Main(string[] args)
     {
         string filePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "test.ftr");

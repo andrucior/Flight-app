@@ -175,11 +175,4 @@ namespace projOb
         }
 
     }
-    public class FieldStringsSubscriber
-    {
-        public void Update(object sender, UpdateArgs updateArgs)
-        {
-
-        }
-    }
 }

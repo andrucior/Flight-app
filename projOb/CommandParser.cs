@@ -195,7 +195,6 @@ namespace projOb
         }
         public bool CheckPredicate()
         {
-            // TODO - flight
             bool intg = false;
             IComparable check, result;
 
