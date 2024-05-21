@@ -22,9 +22,9 @@ class Project
     public static List<MyObject> MyObjects = new List<MyObject>();
     private static Subscriber? Subscriber;
     // TODO:
-    // USAGE
-    // UPDATE
-    // WYSWIETLANIE
+    // USAGE ?
+    // UPDATE ?
+    // WYSWIETLANIE !!!
     static void Main(string[] args)
     {
         string filePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "test.ftr");
@@ -55,26 +55,30 @@ class Project
 
     static Dictionary<string, Generator> CreateDictionary()
     {
-        generators = new Dictionary<string, Generator>();
-        generators.Add("C", new CrewGenerator());
-        generators.Add("P", new PassengerGenerator());
-        generators.Add("CA", new CargoGenerator());
-        generators.Add("CP", new CargoPlaneGenerator());
-        generators.Add("PP", new PassengerPlaneGenerator());
-        generators.Add("AI", new AirportGenerator());
-        generators.Add("FL", new FlightGenerator());
+        generators = new Dictionary<string, Generator>
+        {
+            { "C", new CrewGenerator() },
+            { "P", new PassengerGenerator() },
+            { "CA", new CargoGenerator() },
+            { "CP", new CargoPlaneGenerator() },
+            { "PP", new PassengerPlaneGenerator() },
+            { "AI", new AirportGenerator() },
+            { "FL", new FlightGenerator() }
+        };
         return generators;
     }
     static Dictionary<string, Generator> CreateDictionary2ndStage()
     {
-        generators = new Dictionary<string, Generator>();
-        generators.Add("NCR", new CrewGenerator());
-        generators.Add("NPA", new PassengerGenerator());
-        generators.Add("NCA", new CargoGenerator());
-        generators.Add("NCP", new CargoPlaneGenerator());
-        generators.Add("NPP", new PassengerPlaneGenerator());
-        generators.Add("NAI", new AirportGenerator());
-        generators.Add("NFL", new FlightGenerator());
+        generators = new Dictionary<string, Generator>
+        {
+            { "NCR", new CrewGenerator() },
+            { "NPA", new PassengerGenerator() },
+            { "NCA", new CargoGenerator() },
+            { "NCP", new CargoPlaneGenerator() },
+            { "NPP", new PassengerPlaneGenerator() },
+            { "NAI", new AirportGenerator() },
+            { "NFL", new FlightGenerator() }
+        };
         return generators;
     }
 
@@ -177,7 +181,6 @@ class Project
                     {
                         Usage(message);
                     }
-
                 }
             }
             return;
@@ -295,6 +298,14 @@ class Project
                 Console.WriteLine("{} - obligatory, [] - optional, case insensitive");
                 break;
             case "add":
+                Console.WriteLine("USAGE: add {object_class} new {key_value_list}");
+                Console.WriteLine("{} - obligatory, [] - optional, case insensitive");
+                break;
+            default:
+                Console.WriteLine("Command not found");
+                Console.WriteLine($"USAGE: update {{object_class}} set {{key_value_list}} [where conditions]");
+                Console.WriteLine("USAGE: display {object_fields or *} from {object_class} [where conditions]");
+                Console.WriteLine("USAGE: delete {object_class} [where conditions]");
                 Console.WriteLine("USAGE: add {object_class} new {key_value_list}");
                 Console.WriteLine("{} - obligatory, [] - optional, case insensitive");
                 break;

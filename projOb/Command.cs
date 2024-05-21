@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NetworkSourceSimulator;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ namespace projOb
 {
     public abstract class Command
     {
-        public Dictionary<string, IEnumerable<MyObject>> Objects = new Dictionary<string, IEnumerable<MyObject>>
+        public static Dictionary<string, IEnumerable<MyObject>> Objects = new Dictionary<string, IEnumerable<MyObject>>
         {
             { "flight", Generator.List.Flights },
             { "crew", Generator.List.CrewList },
@@ -18,14 +19,14 @@ namespace projOb
             { "passengerplane", Generator.List.PassengerPlaneList },
             { "airport", Generator.List.Airports }
         };
-        static public Dictionary<string, CommandGenerator> CommandGenerators = new Dictionary<string, CommandGenerator>
+        public static readonly Dictionary<string, CommandGenerator> CommandGenerators = new Dictionary<string, CommandGenerator>
         {
             { "display", new DisplayGenerator() },
             { "add", new AddGenerator() },
             { "delete", new DeleteGenerator() },
             { "update", new UpdateGenerator() }
         };
-        public Dictionary<string, Generator> Generators = new Dictionary<string, Generator>()
+        public static readonly Dictionary<string, Generator> Generators = new Dictionary<string, Generator>()
         {
             { "flight", new FlightGenerator() },
             { "crew", new CrewGenerator() },
@@ -109,42 +110,48 @@ namespace projOb
                 i++;
             }
             DisplayMatrixAsTable(fieldValues);
-
         }
         static void DisplayMatrixAsTable(string[,] matrix)
         {
-            // Get the dimensions of the matrix
             int rows = matrix.GetLength(0);
-            int cols = matrix.GetLength(1);
+            int columns = matrix.GetLength(1);
 
-            // Find the maximum length of elements in each column
-            int[] maxLengths = new int[cols];
-            for (int col = 0; col < cols; col++)
+            if (rows == 0) return;
+            
+            var headers = new string[columns];
+            for (int k = 0; k < columns; k++)
+                headers[k] = matrix[0, k];
+
+            var columnWidths = new int[columns];
+            for (int col = 0; col < columns; col++)
             {
-                int maxLength = 0;
-                for (int row = 0; row < rows; row++)
-                {
-                    int length = matrix[row, col].Length;
-                    if (length > maxLength)
-                    {
-                        maxLength = length;
-                    }
-                }
-                maxLengths[col] = maxLength;
+                int maxLength = headers[col].Length;
+                for (int row = 1; row < rows; row++)
+                    maxLength = Math.Max(maxLength, matrix[row, col]?.Length ?? 0);
+                
+                columnWidths[col] = maxLength + 2; 
             }
 
-            // Display the matrix as a table
-            for (int row = 0; row < rows; row++)
+            Console.Write("|");
+            for (int col = 0; col < columns; col++)
+                Console.Write($" {headers[col].PadRight(columnWidths[col] - 1)}|");
+            
+            Console.WriteLine();
+            Console.WriteLine(new string('-', columnWidths.Sum() + columns + 1));
+
+            for (int row = 1; row < rows; row++) 
             {
-                for (int col = 0; col < cols; col++)
+                Console.Write("|");
+                for (int col = 0; col < columns; col++)
                 {
-                    Console.Write(matrix[row, col].PadRight(maxLengths[col] + 2)); // Add padding for alignment
-                    Console.Write("|".PadRight(maxLengths[col]));
+                    string value = matrix[row, col] ?? string.Empty;
+                    Console.Write($" {value.PadLeft(columnWidths[col] - 1)}|");
                 }
                 Console.WriteLine();
-                Console.WriteLine(new string('-', (cols - 1) * maxLengths[cols - 1])); // Move to the next row
+                Console.WriteLine(new string('-', columnWidths.Sum() + columns + 1));
             }
         }
+
     }
     public class Delete: Command 
     {
@@ -191,11 +198,22 @@ namespace projOb
     public class Add: Command
     {
         public new AddParser Parser { get; private set; }
+        public event EventHandler Changed;
         public Add(string line): base(line) { Parser = new AddParser(line); }
         public override void Execute() 
         {
             string key = Parser.ClassName.ToLower();
-            Generators[key].Create(Parser.KeyValueList);
+            MyObject obj;
+            lock (Generator.List)
+                obj = Generators[key].Create();
+            int i = 0;
+            foreach (var field in Parser.Fields)
+            {
+                Changed += obj.OnUpdate;
+                obj.FieldStrings[$"{field}"] = Parser.KeyValueList[i++];
+                this.Changed?.Invoke(this, new EventArgs());
+                Changed -= obj.OnUpdate;
+            }
         }
     }
     public class Update : Command
@@ -213,7 +231,6 @@ namespace projOb
             fields = fields.Select(x => x.Trim()).ToArray();
             string[] values = Parser.KeyValueList.Select(CommandParser.GetRightHandSide).ToArray();
             values = values.Select(x => x.Trim()).ToArray();
-            FieldStringsSubscriber fieldStringsSubscriber = new FieldStringsSubscriber();
              
             foreach (var obj in objects)
             {
@@ -221,20 +238,9 @@ namespace projOb
                 int i = 0;
                 foreach (var field in fields)
                 {
-                    
                     if (Parser.Conditions != null)
-                    {
-                        foreach(var condition in Parser.Conditions)
-                        {
-                            ConditionMaker cond = new ConditionMaker(condition, obj);
-                            
-                            if (!cond.CheckPredicate())
-                            {
-                                toUpdate = false;
-                                break;
-                            }
-                        }
-                    }
+                        toUpdate = CheckConditions(obj);
+
                     if (toUpdate)
                     {
                         Changed += obj.OnUpdate;
@@ -243,8 +249,24 @@ namespace projOb
                         Changed -= obj.OnUpdate;
                     }
                 }
-                
             }
+        }
+        public bool CheckConditions(MyObject obj)
+        {
+            bool toAdd = false;
+            int condCounter = 0;
+            foreach (var condition in Parser.Conditions)
+            {
+                var cond = new ConditionMaker(condition, obj);
+                if (condCounter == 0)
+                    toAdd = cond.CheckPredicate();
+                else if (Parser.OR_AND[condCounter - 1] == "&&")
+                    toAdd = toAdd && cond.CheckPredicate();
+                else
+                    toAdd = toAdd || cond.CheckPredicate();
+                condCounter++;
+            }
+            return toAdd;
         }
     }
 

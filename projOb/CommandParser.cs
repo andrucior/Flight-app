@@ -145,11 +145,13 @@ namespace projOb
     {
         public string? ClassName { get; private set; }
         public string[]? KeyValueList { get; private set; }
+        public string[]? Fields { get; private set; }
         public AddParser(string line) : base(line) 
         { 
-            ClassName = Command[2];
-            string tmp = Command[3];
-            KeyValueList = tmp.TrimEnd('(',  ')').Split(',');
+            ClassName = Command[1];
+            string tmp = string.Join(' ', Command[3..]);
+            KeyValueList = tmp.TrimEnd('(', ')').Split(',');
+            Fields = KeyValueList.Select(x => GetLeftHandSide(x)).ToArray();
             KeyValueList = KeyValueList.Select(x => GetRightHandSide(x)).ToArray();
         }
     }
@@ -158,8 +160,10 @@ namespace projOb
         public string FieldName;
         public string Operator;
         public MyObject Object;
+        public Plane? Plane;
         public string Condition;
         public string Value;
+        public bool Flight;
 
         public Dictionary<string, Func<IComparable, IComparable, bool>> Lambdas = new Dictionary<string, Func<IComparable, IComparable, bool>>()
         {
@@ -174,21 +178,24 @@ namespace projOb
         {
             Condition = condition;
             string[] tmp = Condition.Split(' ');
-            
+
             if (tmp[0].Contains("worldposition.", StringComparison.CurrentCultureIgnoreCase))
-                FieldName = tmp[0][..14];
+                FieldName = tmp[0][15..];
             else if (tmp[0].Contains("plane.", StringComparison.CurrentCultureIgnoreCase))
-                FieldName = tmp[0][..5];
+            {
+                FieldName = tmp[0][6..];
+                Flight = true;
+            }
             else
                 FieldName = tmp[0];
             
             Operator = tmp[1];
             Value = tmp[2];
-            Object = obj;
+            Object = (Flight? obj.Plane : obj);
         }
         public bool CheckPredicate()
         {
-            // do poprawy
+            // TODO - flight
             bool intg = false;
             IComparable check, result;
 

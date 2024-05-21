@@ -12,12 +12,14 @@ namespace projOb
         public static Lists List = new Lists();
         public abstract MyObject Create(string[] values);
         public abstract MyObject CreateByte(byte[] values);
+        public abstract MyObject Create();
     }
 
     public abstract class PersonGenerator: Generator
     {
         public abstract override Person Create(string[] values);
         public abstract override Person CreateByte(byte[] values);
+        public abstract override Person Create();
     }
 
     public class CrewGenerator: PersonGenerator
@@ -32,6 +34,13 @@ namespace projOb
         public override Crew CreateByte(byte[] values) 
         {
             Crew crew = new Crew(values);
+            lock (List.CrewList)
+                List.CrewList.Add(crew);
+            return crew;
+        }
+        public override Crew Create()
+        {
+            Crew crew = new Crew();
             lock (List.CrewList)
                 List.CrewList.Add(crew);
             return crew;
@@ -53,6 +62,13 @@ namespace projOb
                 List.PassengerList.Add(passenger);
             return passenger;
         }
+        public override Person Create()
+        {
+            Passenger passenger = new Passenger();
+            lock (List.PassengerList)
+                List.PassengerList.Add(passenger);
+            return passenger;
+        }
     }
     public class CargoGenerator: Generator
     {
@@ -67,6 +83,13 @@ namespace projOb
         {
             Cargo cargo = new Cargo(values);
             lock(List.CargoList)
+                List.CargoList.Add(cargo);
+            return cargo;
+        }
+        public override Cargo Create()
+        {
+            Cargo cargo = new Cargo();
+            lock (List.CargoList)
                 List.CargoList.Add(cargo);
             return cargo;
         }
@@ -88,6 +111,13 @@ namespace projOb
                 List.Airports.Add(airport);
             return airport;
         }
+        public override Airport Create()
+        {
+            Airport airport = new Airport();
+            lock (List.Airports)
+                List.Airports.Add(airport);
+            return airport;
+        }
     }
     public class FlightGenerator : Generator
     {
@@ -106,11 +136,19 @@ namespace projOb
             return flight;
 
         }
+        public override Flight Create()
+        {
+            Flight flight = new Flight();
+            lock (List.Flights)
+                List.Flights.Add(flight);
+            return flight;
+        }
     }
     public abstract class PlaneGenerator: Generator
     {
         public abstract override Plane Create(string[] values);
         public abstract override Plane CreateByte(byte[] values);
+        public abstract override Plane Create();
     }
     public class CargoPlaneGenerator: PlaneGenerator
     {
@@ -128,6 +166,13 @@ namespace projOb
                 List.CargoPlanes.Add(cargoPlane);
             return cargoPlane;
         }
+        public override CargoPlane Create()
+        {
+            CargoPlane cargoPlane = new CargoPlane();
+            lock (List.CargoPlanes)
+                List.CargoPlanes.Add(cargoPlane);
+            return cargoPlane;
+        }
     }
     public class PassengerPlaneGenerator: PlaneGenerator
     {
@@ -141,6 +186,13 @@ namespace projOb
         public override PassengerPlane CreateByte(byte[] values)
         {
             PassengerPlane passengerPlane = new PassengerPlane(values);
+            lock (List.PassengerPlaneList)
+                List.PassengerPlaneList.Add(passengerPlane);
+            return passengerPlane;
+        }
+        public override PassengerPlane Create()
+        {
+            PassengerPlane passengerPlane = new PassengerPlane();
             lock (List.PassengerPlaneList)
                 List.PassengerPlaneList.Add(passengerPlane);
             return passengerPlane;

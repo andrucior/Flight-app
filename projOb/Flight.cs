@@ -66,6 +66,7 @@ namespace projOb
             LoadID = new UInt64[tmp2.Length];
             LoadID = tmp2.Select(UInt64.Parse).ToArray();
             CreateFieldStrings();
+            SetPlane();
         }
         public Flight(byte[] values) : base(values)
         {
@@ -87,6 +88,7 @@ namespace projOb
             for (int i = 0; (i < PCC); i++)
                 LoadID[i] = BitConverter.ToUInt64(values, 59 + 8 * CC + 8 * i);
             CreateFieldStrings();
+            SetPlane();
         }
         public override string JsonSerialize()
         {
@@ -120,6 +122,12 @@ namespace projOb
             Latitude = Convert.ToSingle(FieldStrings["latitude"]);
             AMSL = Convert.ToSingle(FieldStrings["amsl"]);
             PlaneID = Convert.ToUInt64(FieldStrings["planeid"]);
+        }
+        private void SetPlane()
+        {
+            List<Plane> planes = new List<Plane>(Generator.List.CargoPlanes);
+            planes.AddRange(Generator.List.PassengerPlaneList);
+            Plane = planes.Find(pl => pl.ID == PlaneID);
         }
     }
 }

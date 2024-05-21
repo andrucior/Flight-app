@@ -13,6 +13,7 @@ namespace projOb
     {
         public Dictionary<string, string> FieldStrings;
         public UInt64 ID { get; set; }
+        public Plane? Plane { get; set; }
         public MyObject() { ID = 0; }
         [JsonConstructor]
         public MyObject(string[] values) 
