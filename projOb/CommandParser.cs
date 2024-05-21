@@ -10,6 +10,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static SkiaSharp.HarfBuzz.SKShaper;
 
 namespace projOb
 {
@@ -33,7 +34,7 @@ namespace projOb
         static public string GetRightHandSide(string input)
         {
             string[] splitted = input.Split('=');
-            return splitted[2];
+            return splitted[1];
         }
         static public string GetLeftHandSide(string input)
         {
@@ -85,8 +86,10 @@ namespace projOb
         public string ClassName { get; private set; }
         public string[]? Conditions { get; private set; }
         public string[] KeyValueList { get; private set; }
+        public List<string> OR_AND;
         public UpdateParser(string line) : base(line) 
         {
+            OR_AND = new List<string>();
             ClassName = Command[1];
             string tmp = string.Join(' ', Command[3..]);
             int index = tmp.IndexOf("where", StringComparison.OrdinalIgnoreCase);
@@ -104,21 +107,37 @@ namespace projOb
                 tmp = string.Join(' ', Command[--index..]);
                 Conditions = Regex.Split(tmp, @"\s+and\s+|\s+or\s+", RegexOptions.IgnoreCase);
                 Conditions = Conditions.Select(x => x.Trim()).ToArray();
+                for (int j = 0; j < Command.Length; j++)
+                {
+                    if (Command[j] == "or")
+                        OR_AND.Add("||");
+                    if (Command[j] == "and")
+                        OR_AND.Add("&&");
+                }
             }
         }
     }
     public class DeleteParser: CommandParser
     {
         public string ClassName { get; private set; }
-        public string[]? Conditions { get; private set; }    
+        public string[]? Conditions { get; private set; }
+        public List<string> OR_AND;
         public DeleteParser(string line) : base(line) 
         {
+            OR_AND = new List<string>();
             ClassName = Command[1];
             if (Command.Length > 3) 
             {
                 string tmp = string.Join(' ', Command[3..]);
                 Conditions = Regex.Split(tmp, @"\s+and\s+|\s+or\s+", RegexOptions.IgnoreCase);
                 Conditions = Conditions.Select(x => x.Trim()).ToArray();
+                for (int j = 0; j < Command.Length; j++)
+                {
+                    if (Command[j] == "or")
+                        OR_AND.Add("||");
+                    if (Command[j] == "and")
+                        OR_AND.Add("&&");
+                }
             }
         }
     }
@@ -134,7 +153,6 @@ namespace projOb
             KeyValueList = KeyValueList.Select(x => GetRightHandSide(x)).ToArray();
         }
     }
-
     public class ConditionMaker
     {
         public string FieldName;
@@ -143,33 +161,6 @@ namespace projOb
         public string Condition;
         public string Value;
 
-        public Dictionary<string, IComparable> Types = new Dictionary<string, IComparable>()
-        {
-            { "ID", UInt64.MaxValue },
-            { "Name", string.Empty },
-            { "Description", string.Empty },
-            { "Origin", string.Empty },
-            { "Target", string.Empty },
-            { "TakeOff", string.Empty },
-            { "WorldPosition", (float.MinValue, float.MinValue) },
-            { "AMSL", float.MinValue },
-            { "ISO", string.Empty },
-            { "Serial", string.Empty },
-            { "Model", string.Empty },
-            { "FirstClassSize", UInt64.MaxValue },
-            { "BusinessClassSize", UInt64.MaxValue },
-            { "EconomyClassSize", UInt64.MaxValue },
-            { "MaxLoad", string.Empty },
-            { "Weight", float.MinValue },
-            { "Code", string.Empty },
-            { "Phone", string.Empty },
-            { "Email", string.Empty },
-            { "Miles", UInt64.MaxValue },
-            { "Age", UInt64.MaxValue },
-            { "Practise", UInt64.MaxValue },
-            { "Role", string.Empty },
-            { "Class", string.Empty }
-        };
         public Dictionary<string, Func<IComparable, IComparable, bool>> Lambdas = new Dictionary<string, Func<IComparable, IComparable, bool>>()
         {
             { "<", (x,y) =>  x.CompareTo(y) < 0},
@@ -198,45 +189,39 @@ namespace projOb
         public bool CheckPredicate()
         {
             // do poprawy
-            bool res1, res2 = false;
-            IComparable check, result3;
-                
+            bool intg = false;
+            IComparable check, result;
 
-            
-            res1 = UInt64.TryParse(Value, out var result);
-            float result2 = 0;
-            if (!res1)
-                res2 = float.TryParse([2], out result2);
-            
-
-            Types.TryGetValue(FieldName, out var field);
-            Lambdas.TryGetValue(Operator, out var lambda);
-            Object.CreateFieldStrings();
-
-            string val = Object.FieldStrings[FieldName.ToLower()];
-
-            if (res1)
-            {
-                check = Convert.ToUInt64(val);
-
-                return lambda.Invoke(check, result);
-            }
-            else if (res2)
-            {
-                check = Convert.ToSingle(val);
-                return lambda.Invoke(check, result2);
-            }
-            else if (!Value.Contains(':'))
-            {
-                check = val;
-                result3 = Value;
-            }
+            if (Value.Contains('.'))
+                result = float.Parse(Value);
+            else if (Value.Contains(':'))
+                result = DateTime.ParseExact(Value, "HH:mm", CultureInfo.InvariantCulture);
             else
             {
-                check = DateTime.ParseExact(val, "HH:mm", CultureInfo.InvariantCulture);
-                result3 = DateTime.ParseExact(Value, "HH:mm", CultureInfo.InvariantCulture);
+                try
+                {
+                    result = UInt64.Parse(Value);
+                    intg = true;
+                }
+                catch(FormatException)
+                {
+                    result = Value;
+                }
             }
-            return lambda.Invoke(check, result3);
+
+            Lambdas.TryGetValue(Operator, out var lambda);
+            string val = Object.FieldStrings[FieldName.ToLower()];
+
+            if (Value.Contains('.'))
+                check = Convert.ToSingle(val);
+            else if (Value.Contains(':'))
+                check = DateTime.ParseExact(val, "HH:mm", CultureInfo.InvariantCulture);
+            else if (!intg)
+                check = val;
+            else
+                check = Convert.ToUInt64(val);
+            
+            return lambda.Invoke(check, result);
         }
         
     }

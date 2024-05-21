@@ -112,7 +112,6 @@ class Project
                 sw.WriteLine($"Invalid arguments in line {lineNr}. Make sure it is correct", ex);
             }
             
-            
             lineNr++;
         }
     }
@@ -168,9 +167,17 @@ class Project
                     }
                 }
                 else if (Command.CommandGenerators.ContainsKey(messageParser.CommandName))
-                {     
-                    var command = Command.CommandGenerators[messageParser.CommandName].Create(message);
-                    command.Execute();
+                {
+                    try
+                    {
+                        var command = Command.CommandGenerators[messageParser.CommandName].Create(message);
+                        command.Execute();
+                    }
+                    catch
+                    {
+                        Usage(message);
+                    }
+
                 }
             }
             return;
@@ -249,7 +256,6 @@ class Project
             Subscriber.StartDate = StartDate;
             Thread.Sleep(1000);
         }
-
         return;
     }
     static List<Media> CreateMediaList()
@@ -271,5 +277,27 @@ class Project
             medias.Add(newspaperGenerator.Create(newspaperNames[i]));
         
         return medias;
+    }
+    static public void Usage(string message)
+    {
+        switch (message)
+        {
+            case "update":
+                Console.WriteLine($"USAGE: update {{object_class}} set {{key_value_list}} [where conditions]");
+                Console.WriteLine("{} - obligatory, [] - optional, case insensitive");
+                break;
+            case "display":
+                Console.WriteLine("USAGE: display {object_fields or *} from {object_class} [where conditions]");
+                Console.WriteLine("{} - obligatory, [] - optional, case insensitive");
+                break;
+            case "delete":
+                Console.WriteLine("USAGE: delete {object_class} [where conditions]");
+                Console.WriteLine("{} - obligatory, [] - optional, case insensitive");
+                break;
+            case "add":
+                Console.WriteLine("USAGE: add {object_class} new {key_value_list}");
+                Console.WriteLine("{} - obligatory, [] - optional, case insensitive");
+                break;
+        }
     }
 }

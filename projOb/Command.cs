@@ -58,30 +58,33 @@ namespace projOb
             lock (objects)
             {
                 
-
                 foreach (var obj in objects)
                 {
-                    bool toAdd = false;
+                    bool toAdd = true;
                     if (Parser.Conditions != null)
-                    {
-                        int condCounter = 0;
-                        foreach (var condition in Parser.Conditions)
-                        {
-                            var cond = new ConditionMaker(condition, obj);
-                            if (condCounter == 0)
-                                toAdd = cond.CheckPredicate();
-                            else if (Parser.OR_AND[condCounter - 1] == "&&")
-                                toAdd = toAdd && cond.CheckPredicate();
-                            else
-                                toAdd = toAdd || cond.CheckPredicate();
-                            condCounter++;
-                        }
-                    }
+                        toAdd = CheckConditions(obj);
                     if (toAdd)
                         toDisplay.Add(obj);
                 }
             }
             DisplayOnConsole(toDisplay, Parser.ObjectFields);
+        }
+        public bool CheckConditions(MyObject obj)
+        {
+            bool toAdd = false;
+            int condCounter = 0;
+            foreach (var condition in Parser.Conditions)
+            {
+                var cond = new ConditionMaker(condition, obj);
+                if (condCounter == 0)
+                    toAdd = cond.CheckPredicate();
+                else if (Parser.OR_AND[condCounter - 1] == "&&")
+                    toAdd = toAdd && cond.CheckPredicate();
+                else
+                    toAdd = toAdd || cond.CheckPredicate();
+                condCounter++;
+            }
+            return toAdd;
         }
         public void DisplayOnConsole(List<MyObject> objects, string[] objectFields)
         {
@@ -156,21 +159,33 @@ namespace projOb
             lock (objects)
             {
                 var list = objects.ToList();
-                for(int i = 0; i < list.Count(); i++)
+                for(int i = 0; i < list.Count; i++)
                 {
                     var obj = list[i];
+                    bool toDelete = true; 
                     if (Parser.Conditions != null)
-                    {
-                        foreach (var condition in Parser.Conditions)
-                        {
-                            var cond = new ConditionMaker(condition, obj);
-                            if (!cond.CheckPredicate())
-                                break;
-                        }
-                    }
-                    obj.Delete();
+                        toDelete = CheckConditions(obj);
+                    if (toDelete) 
+                        obj.Delete();
                 }
             }
+        }
+        public bool CheckConditions(MyObject obj)
+        {
+            bool toAdd = false;
+            int condCounter = 0;
+            foreach (var condition in Parser.Conditions)
+            {
+                var cond = new ConditionMaker(condition, obj);
+                if (condCounter == 0)
+                    toAdd = cond.CheckPredicate();
+                else if (Parser.OR_AND[condCounter - 1] == "&&")
+                    toAdd = toAdd && cond.CheckPredicate();
+                else
+                    toAdd = toAdd || cond.CheckPredicate();
+                condCounter++;
+            }
+            return toAdd;
         }
     }
     public class Add: Command
