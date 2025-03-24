@@ -28,3 +28,4 @@ Usage: delete {object_class} [where {conditions}]
 _add_ – Adds a new object.
 Syntax: add {object_class} new ({key_value_list})
 
+Technologies: C#
